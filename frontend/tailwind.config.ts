@@ -46,6 +46,15 @@ export default {
         '24': '24px',
         '32': '32px',
         '48': '48px',
+      },
+      keyframes: {
+        'pulse-ring': {
+          '0%': { transform: 'scale(0.7)', opacity: '0.8' },
+          '100%': { transform: 'scale(2.5)', opacity: '0' },
+        }
+      },
+      animation: {
+        'pulse-ring': 'pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       }
     },
   },

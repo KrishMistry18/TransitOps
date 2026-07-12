@@ -22,10 +22,14 @@ app.use('/api/drivers', driverRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api', stubsRoutes); // all other routes on /api prefix
 
+import connectDB from './config/db';
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Backend server running on port ${PORT}`);
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Backend server running on port ${PORT}`);
+  });
 });

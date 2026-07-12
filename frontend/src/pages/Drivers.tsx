@@ -1,10 +1,12 @@
-﻿import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Driver } from '@shared/types';
 import { AuthContext } from '../context/AuthContext';
+import { cn } from '../components/ui/utils';
 import { 
   Button, Card, Input, Select, Table, TableHeader, TableRow, 
-  TableHead, TableBody, TableCell, StatusChip, Modal 
+  TableHead, TableBody, TableCell, StatusChip, Modal, SafetyScore, Avatar
 } from '../components/ui';
+import { Search, Plus, AlertCircle } from 'lucide-react';
 
 export default function Drivers() {
   const { token } = useContext(AuthContext);
@@ -104,11 +106,13 @@ export default function Drivers() {
               placeholder="Search by name or license..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              icon={<Search size={16} />}
+              shortcut="⌘K"
             />
           </div>
         </div>
-        <Button onClick={() => setShowAddModal(true)}>
-          + Add Driver
+        <Button icon={<Plus size={16} />} onClick={() => setShowAddModal(true)}>
+          Add Driver
         </Button>
       </div>
 
@@ -130,17 +134,21 @@ export default function Drivers() {
               const expired = isExpired(d.licenseExpiryDate);
               return (
                 <TableRow key={d.id} className={expired ? 'border-l-4 border-l-status-danger' : ''}>
-                  <TableCell>{d.name}</TableCell>
-                  <TableCell mono>{d.licenseNumber}</TableCell>
-                  <TableCell>{d.licenseCategory}</TableCell>
-                  <TableCell mono className={expired ? 'text-status-danger font-bold' : ''}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar name={d.name} />
+                      <span className="font-semibold text-[0.9375rem] text-white">{d.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell mono className="text-text-muted">{d.licenseNumber}</TableCell>
+                  <TableCell className="text-text-muted">{d.licenseCategory}</TableCell>
+                  <TableCell mono className={cn("text-text-muted", expired && 'text-status-danger font-bold')}>
                     {new Date(d.licenseExpiryDate).toLocaleDateString()}
                     {expired && ' (EXPIRED)'}
                   </TableCell>
-                  <TableCell mono>{d.contactNumber}</TableCell>
+                  <TableCell mono className="text-text-muted">{d.contactNumber}</TableCell>
                   <TableCell>
-                    <StatusChip status={d.safetyScore >= 90 ? 'AVAILABLE' : (d.safetyScore >= 70 ? 'IN_SHOP' : 'RETIRED')} domain="vehicle" />
-                    <span className="ml-2 text-[0.875rem]">{d.safetyScore}%</span>
+                    <SafetyScore score={d.safetyScore} />
                   </TableCell>
                   <TableCell>
                     <StatusChip status={d.status} domain="driver" />
@@ -158,15 +166,30 @@ export default function Drivers() {
           </TableBody>
         </Table>
 
-        <div className="mt-6 flex gap-4 flex-wrap items-center">
-          <span className="text-[0.75rem] font-medium text-text-muted uppercase tracking-[0.04em]">Toggle Status</span>
-          <StatusChip status="AVAILABLE" domain="driver" /> <span className="text-text-muted text-[0.875rem] ml-1">{totals.available}</span>
-          <StatusChip status="ON_TRIP" domain="driver" /> <span className="text-text-muted text-[0.875rem] ml-1">{totals.onTrip}</span>
-          <StatusChip status="OFF_DUTY" domain="driver" /> <span className="text-text-muted text-[0.875rem] ml-1">{totals.offDuty}</span>
-          <StatusChip status="SUSPENDED" domain="driver" /> <span className="text-text-muted text-[0.875rem] ml-1">{totals.suspended}</span>
+        <div className="mt-8 mb-4">
+          <div className="inline-flex items-center gap-2 bg-[#1B212B]/40 backdrop-blur-md rounded-xl p-1.5 border border-white/5 shadow-sm">
+            {[
+              { label: 'Available', count: totals.available, color: 'bg-status-available' },
+              { label: 'On Trip', count: totals.onTrip, color: 'bg-status-pending' },
+              { label: 'Off Duty', count: totals.offDuty, color: 'bg-status-inshop' },
+              { label: 'Suspended', count: totals.suspended, color: 'bg-status-danger' },
+            ].map((stat, i, arr) => (
+              <React.Fragment key={stat.label}>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-white/[0.02] rounded-[8px] hover:bg-white/[0.04] transition-colors cursor-default">
+                  <span className={cn("w-2 h-2 rounded-full", stat.color)} />
+                  <span className="text-[0.65rem] font-medium text-text-muted uppercase tracking-[0.06em]">{stat.label}</span>
+                  <span className="text-sm font-bold text-white ml-1">{stat.count}</span>
+                </div>
+                {i < arr.length - 1 && <div className="w-[1px] h-6 bg-white/5" />}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
-        <div className="mt-4 text-[0.75rem] text-text-muted">
-          Rule: Expired license or Suspended status â†’ blocked from trip assignment
+        <div className="flex items-center gap-4 bg-[#1B212B]/40 backdrop-blur-md border border-white/5 border-l-status-danger/80 p-4 rounded-xl shadow-sm text-sm text-text-primary">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-status-danger/10 shrink-0">
+            <AlertCircle className="w-4 h-4 text-status-danger" />
+          </div>
+          <span><strong className="text-white">Rule:</strong> Expired license or Suspended status &rarr; blocked from trip assignment</span>
         </div>
       </Card>
 

@@ -29,7 +29,7 @@ export function StatusChip({ status, domain, className }: StatusChipProps) {
 
   return (
     <div className={cn(
-      "inline-flex items-center rounded-full px-2 py-0.5 border text-[0.75rem] font-mono whitespace-nowrap",
+      "inline-flex items-center rounded-full px-2 py-0.5 border text-[0.75rem] font-mono whitespace-nowrap uppercase tracking-[0.04em]",
       {
         "bg-status-available/12 text-status-available border-status-available/30": colorCategory === 'available',
         "bg-status-pending/12 text-status-pending border-status-pending/30": colorCategory === 'pending',
@@ -38,15 +38,28 @@ export function StatusChip({ status, domain, className }: StatusChipProps) {
       },
       className
     )}>
-      <span className={cn(
-        "w-1.5 h-1.5 rounded-full mr-1.5",
-        {
-          "bg-status-available": colorCategory === 'available',
-          "bg-status-pending": colorCategory === 'pending',
-          "bg-status-danger": colorCategory === 'danger',
-          "bg-status-inshop": colorCategory === 'inshop',
-        }
-      )} aria-hidden="true" />
+      <span className="relative flex h-1.5 w-1.5 mr-1.5 items-center justify-center">
+        {normalizedStatus === 'ON TRIP' && (
+          <span className={cn(
+            "absolute inline-flex h-full w-full rounded-full opacity-75 motion-safe:animate-pulse-ring",
+            {
+              "bg-status-available": colorCategory === 'available',
+              "bg-status-pending": colorCategory === 'pending',
+              "bg-status-danger": colorCategory === 'danger',
+              "bg-status-inshop": colorCategory === 'inshop',
+            }
+          )} />
+        )}
+        <span className={cn(
+          "relative inline-flex rounded-full h-1.5 w-1.5",
+          {
+            "bg-status-available": colorCategory === 'available',
+            "bg-status-pending": colorCategory === 'pending',
+            "bg-status-danger": colorCategory === 'danger',
+            "bg-status-inshop": colorCategory === 'inshop',
+          }
+        )} aria-hidden="true" />
+      </span>
       {normalizedStatus}
     </div>
   );

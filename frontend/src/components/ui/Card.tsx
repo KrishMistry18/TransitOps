@@ -9,7 +9,7 @@ export function Card({ className, accent, children, style, ...props }: CardProps
   return (
     <div
       className={cn(
-        "bg-surface border border-border rounded-[10px] overflow-hidden relative",
+        "relative rounded-[16px] backdrop-blur-[12px] bg-[#1B212B]/60 border border-white/5 shadow-[0_20px_60px_rgba(0,0,0,0.4)] overflow-hidden",
         className
       )}
       style={style}
@@ -21,7 +21,8 @@ export function Card({ className, accent, children, style, ...props }: CardProps
           style={{ backgroundColor: accent }} 
         />
       )}
-      <div className="p-16 sm:p-24">
+      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/15 to-transparent pointer-events-none" />
+      <div className="relative z-10 p-16 sm:p-24">
         {children}
       </div>
     </div>

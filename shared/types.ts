@@ -7,7 +7,7 @@ export type MaintenanceStatus = "ACTIVE" | "CLOSED";
 export type ExpenseType = "TOLL" | "MAINTENANCE" | "OTHER";
 
 export interface User {
-  id: number;
+  id: string;
   email: string;
   name: string;
   role: Role;
@@ -17,7 +17,7 @@ export interface User {
 }
 
 export interface Vehicle {
-  id: number;
+  id: string;
   registrationNumber: string;
   name: string;
   type: string;
@@ -29,7 +29,7 @@ export interface Vehicle {
 }
 
 export interface Driver {
-  id: number;
+  id: string;
   name: string;
   licenseNumber: string;
   licenseCategory: string;
@@ -40,11 +40,11 @@ export interface Driver {
 }
 
 export interface Trip {
-  id: number;
+  id: string;
   source: string;
   destination: string;
-  vehicleId: number;
-  driverId: number;
+  vehicleId: string;
+  driverId: string;
   cargoWeight: number;
   plannedDistance: number;
   actualDistance?: number;
@@ -56,8 +56,8 @@ export interface Trip {
 }
 
 export interface MaintenanceLog {
-  id: number;
-  vehicleId: number;
+  id: string;
+  vehicleId: string;
   description: string;
   cost: number;
   status: MaintenanceStatus;
@@ -66,17 +66,17 @@ export interface MaintenanceLog {
 }
 
 export interface FuelLog {
-  id: number;
-  vehicleId: number;
-  tripId?: number | null;
+  id: string;
+  vehicleId: string;
+  tripId?: string | null;
   liters: number;
   cost: number;
   date: Date | string;
 }
 
 export interface Expense {
-  id: number;
-  vehicleId: number;
+  id: string;
+  vehicleId: string;
   type: ExpenseType;
   amount: number;
   description: string;
@@ -84,7 +84,7 @@ export interface Expense {
 }
 
 export interface DepotSettings {
-  id?: number;
+  id?: string;
   depotName: string;
   currency: string;
   distanceUnit: string;
@@ -105,7 +105,7 @@ export interface VehicleReportRow {
   count?: number;
   month?: string;
   rate?: number;
-  id?: number;
+  id?: string;
   registrationNumber?: string;
   status?: string;
   fuelEfficiency?: number;

@@ -4,27 +4,31 @@ import { cn } from './utils';
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
   size?: 'sm' | 'md';
+  icon?: React.ReactNode;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', ...props }, ref) => {
+  ({ className, variant = 'primary', size = 'md', icon, children, ...props }, ref) => {
     return (
       <button
         ref={ref}
         className={cn(
-          "inline-flex items-center justify-center rounded-[6px] font-medium transition-colors focus:outline-none focus:ring-[2px] focus:ring-accent-primary focus:ring-offset-2 focus:ring-offset-bg disabled:opacity-50 disabled:pointer-events-none",
+          "inline-flex items-center justify-center gap-2 rounded-[6px] font-medium transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:opacity-50 disabled:pointer-events-none",
           {
-            "bg-accent-primary text-white hover:bg-accent-primary-hover": variant === 'primary',
+            "bg-gradient-to-br from-accent-primary to-[#7B61FF] text-white shadow-[0_4px_14px_rgba(91,141,239,0.4)] hover:shadow-[0_6px_20px_rgba(91,141,239,0.6)] hover:-translate-y-[1px]": variant === 'primary',
             "bg-surface-raised border border-border text-text-primary hover:bg-surface": variant === 'secondary',
-            "bg-status-danger text-white hover:opacity-90": variant === 'danger',
+            "bg-status-danger text-white hover:brightness-110": variant === 'danger',
             "bg-transparent text-text-primary hover:bg-surface-raised": variant === 'ghost',
-            "h-8 px-12 text-sm": size === 'sm', // Using the exact px values from scale: 12px padding
-            "h-[36px] px-16 text-sm": size === 'md', // Using 16px padding
+            "h-8 px-3 text-sm": size === 'sm',
+            "h-[36px] px-4 text-sm": size === 'md',
           },
           className
         )}
         {...props}
-      />
+      >
+        {icon}
+        {children}
+      </button>
     );
   }
 );

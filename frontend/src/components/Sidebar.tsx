@@ -24,24 +24,35 @@ export default function Sidebar() {
         <h1 className="text-text-primary font-display font-bold text-xl hidden lg:block tracking-wide">TransitOps</h1>
         <div className="lg:hidden font-display font-bold text-accent-primary text-xl">TO</div>
       </div>
-      <nav className="flex-1 py-6 overflow-y-auto">
-        <ul className="space-y-1">
+      <nav className="flex-1 py-6 px-3 overflow-y-auto">
+        <ul className="flex flex-col gap-[8px]">
           {NAV_ITEMS.map((item) => (
             <li key={item.name}>
               <NavLink
                 to={item.path}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center h-12 lg:px-6 px-0 justify-center lg:justify-start transition-colors border-l-[3px]",
+                    "group flex items-center h-10 lg:px-3 px-0 justify-center lg:justify-start transition-all rounded-[8px]",
                     isActive 
-                      ? "border-accent-primary bg-accent-primary/10 text-accent-primary" 
-                      : "border-transparent text-text-muted hover:text-text-primary hover:bg-surface-raised"
+                      ? "text-white font-bold bg-white/[0.02]" 
+                      : "text-text-muted hover:text-text-primary hover:bg-white/[0.02]"
                   )
                 }
                 title={item.name}
               >
-                <item.icon className="w-5 h-5 lg:mr-3 shrink-0" />
-                <span className="hidden lg:inline text-sm font-medium">{item.name}</span>
+                {({ isActive }) => (
+                  <>
+                    <div className={cn(
+                      "flex items-center justify-center w-[28px] h-[28px] rounded-[6px] shrink-0 transition-all lg:mr-3",
+                      isActive
+                        ? "bg-gradient-to-br from-accent-primary to-[#7B61FF] text-white shadow-[0_0_12px_rgba(91,141,239,0.4)]"
+                        : "bg-transparent text-text-muted group-hover:bg-white/[0.06]"
+                    )}>
+                      <item.icon className="w-4 h-4" />
+                    </div>
+                    <span className="hidden lg:inline text-sm tracking-wide">{item.name}</span>
+                  </>
+                )}
               </NavLink>
             </li>
           ))}

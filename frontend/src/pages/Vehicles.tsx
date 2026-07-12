@@ -1,10 +1,11 @@
-﻿import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Vehicle } from '@shared/types';
 import { AuthContext } from '../context/AuthContext';
 import { 
   Button, Card, Input, Select, Table, TableHeader, TableRow, 
   TableHead, TableBody, TableCell, StatusChip, Modal 
 } from '../components/ui';
+import { Search, Plus, Info } from 'lucide-react';
 
 export default function Vehicles() {
   const { token } = useContext(AuthContext);
@@ -111,11 +112,13 @@ export default function Vehicles() {
               placeholder="Search..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              icon={<Search size={16} />}
+              shortcut="⌘K"
             />
           </div>
         </div>
-        <Button onClick={() => setShowAddModal(true)}>
-          + Add Vehicle
+        <Button icon={<Plus size={16} />} onClick={() => setShowAddModal(true)}>
+          Add Vehicle
         </Button>
       </div>
 
@@ -135,12 +138,14 @@ export default function Vehicles() {
           <TableBody>
             {vehicles.map((v) => (
               <TableRow key={v.id}>
-                <TableCell mono>{v.registrationNumber}</TableCell>
-                <TableCell>{v.name}</TableCell>
-                <TableCell>{v.type}</TableCell>
-                <TableCell mono>{v.maxLoadCapacity} kg</TableCell>
-                <TableCell mono>{v.odometer.toLocaleString()}</TableCell>
-                <TableCell mono>{v.acquisitionCost.toLocaleString()}</TableCell>
+                <TableCell mono>
+                  <span className="font-semibold text-[0.9375rem] text-white">{v.registrationNumber}</span>
+                </TableCell>
+                <TableCell className="text-text-muted">{v.name}</TableCell>
+                <TableCell className="text-text-muted">{v.type}</TableCell>
+                <TableCell mono className="text-text-muted">{v.maxLoadCapacity} kg</TableCell>
+                <TableCell mono className="text-text-muted">{v.odometer.toLocaleString()}</TableCell>
+                <TableCell mono className="text-text-muted">${v.acquisitionCost.toLocaleString()}</TableCell>
                 <TableCell>
                   <StatusChip status={v.status} domain="vehicle" />
                 </TableCell>
@@ -155,8 +160,13 @@ export default function Vehicles() {
             )}
           </TableBody>
         </Table>
-        <div className="mt-4 text-[0.75rem] text-text-muted">
-          Rule: Registration No. must be unique â€¢ Retired/In Shop vehicles are hidden from Trip Dispatcher
+        <div className="mt-8 mb-4">
+          <div className="flex items-center gap-4 bg-[#1B212B]/40 backdrop-blur-md border border-white/5 border-l-accent-primary/80 p-4 rounded-xl shadow-sm text-sm text-text-primary">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-accent-primary/10 shrink-0">
+              <Info className="w-4 h-4 text-accent-primary" />
+            </div>
+            <span><strong className="text-white">Rule:</strong> Registration No. must be unique &bull; Retired / In Shop vehicles are hidden from Trip Dispatcher</span>
+          </div>
         </div>
       </Card>
 

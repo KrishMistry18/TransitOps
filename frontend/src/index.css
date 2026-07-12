@@ -6,7 +6,8 @@
 
 @layer base {
   body {
-    background-color: #11151C;
+    background: radial-gradient(circle at 50% 0%, #171d2b 0%, #11151c 60%, #0a0c10 100%);
+    background-attachment: fixed;
     color: #EDEFF2;
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;

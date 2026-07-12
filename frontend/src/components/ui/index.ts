@@ -3,6 +3,8 @@ export * from './Card';
 export * from './KPICard';
 export * from './StatusChip';
 export * from './Table';
+export * from './SafetyScore';
+export * from './Avatar';
 export * from './Input';
 export * from './Select';
 export * from './Modal';

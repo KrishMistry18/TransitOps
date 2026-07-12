@@ -1,15 +1,13 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { DepotSettingsModel } from '../models/DepotSettings';
 import { PERMISSIONS } from '../config/permissions';
-
-const prisma = new PrismaClient();
 
 export const getSettings = async (req: Request, res: Response) => {
   try {
-    let settings = await prisma.depotSettings.findFirst();
+    let settings = await DepotSettingsModel.findOne();
     if (!settings) {
-      settings = await prisma.depotSettings.create({
-        data: { depotName: 'TransitOps Default', currency: 'USD', distanceUnit: 'km' }
+      settings = await DepotSettingsModel.create({
+        depotName: 'TransitOps Default', currency: 'USD', distanceUnit: 'km'
       });
     }
     res.json(settings);
@@ -21,13 +19,13 @@ export const getSettings = async (req: Request, res: Response) => {
 export const updateSettings = async (req: Request, res: Response) => {
   const { depotName, currency, distanceUnit } = req.body;
   try {
-    const settings = await prisma.depotSettings.findFirst();
+    const settings = await DepotSettingsModel.findOne();
     if (settings) {
-      const updated = await prisma.depotSettings.update({
-        where: { id: settings.id },
-        data: { depotName, currency, distanceUnit }
-      });
-      res.json(updated);
+      settings.depotName = depotName;
+      settings.currency = currency;
+      settings.distanceUnit = distanceUnit;
+      await settings.save();
+      res.json(settings);
     } else {
       res.status(404).json({ message: 'Settings not found' });
     }
