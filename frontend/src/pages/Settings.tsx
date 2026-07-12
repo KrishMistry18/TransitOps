@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+﻿import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { PermissionsMatrix, FeaturePermissions } from '@shared/types';
 import { Card, Input, Select, Button, Table, TableHeader, TableRow, TableHead, TableBody, TableCell, StatusChip } from '../components/ui';
@@ -75,8 +75,8 @@ export default function Settings() {
                 disabled={user?.role !== 'FLEET_MANAGER'}
               >
                 <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
+                <option value="EUR">EUR (â‚¬)</option>
+                <option value="GBP">GBP (Â£)</option>
               </Select>
             </div>
             <div>

@@ -6,6 +6,10 @@
 
 @layer base {
   body {
-    @apply bg-bg text-text-primary font-body antialiased;
+    background-color: #11151C;
+    color: #EDEFF2;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }

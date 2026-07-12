@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+﻿import React, { useState, useEffect, useContext } from 'react';
 import { Vehicle } from '@shared/types';
 import { AuthContext } from '../context/AuthContext';
 import { 
@@ -156,7 +156,7 @@ export default function Vehicles() {
           </TableBody>
         </Table>
         <div className="mt-4 text-[0.75rem] text-text-muted">
-          Rule: Registration No. must be unique • Retired/In Shop vehicles are hidden from Trip Dispatcher
+          Rule: Registration No. must be unique â€¢ Retired/In Shop vehicles are hidden from Trip Dispatcher
         </div>
       </Card>
 

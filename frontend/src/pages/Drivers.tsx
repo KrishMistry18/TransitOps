@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+﻿import React, { useState, useEffect, useContext } from 'react';
 import { Driver } from '@shared/types';
 import { AuthContext } from '../context/AuthContext';
 import { 
@@ -166,7 +166,7 @@ export default function Drivers() {
           <StatusChip status="SUSPENDED" domain="driver" /> <span className="text-text-muted text-[0.875rem] ml-1">{totals.suspended}</span>
         </div>
         <div className="mt-4 text-[0.75rem] text-text-muted">
-          Rule: Expired license or Suspended status → blocked from trip assignment
+          Rule: Expired license or Suspended status â†’ blocked from trip assignment
         </div>
       </Card>
 
