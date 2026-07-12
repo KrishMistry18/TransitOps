@@ -4,17 +4,10 @@ import * as stubs from '../controllers/stubsController';
 const router = express.Router();
 
 // Vehicles
-router.get('/vehicles', stubs.getVehicles);
-router.post('/vehicles', stubs.createVehicle);
-router.put('/vehicles/:id', stubs.updateVehicle);
-router.delete('/vehicles/:id', stubs.deleteVehicle);
+// Moved to real routes
 
 // Drivers
-router.get('/drivers', stubs.getDrivers);
-router.get('/drivers/expiring-licenses', stubs.getExpiringLicenses);
-router.post('/drivers', stubs.createDriver);
-router.put('/drivers/:id', stubs.updateDriver);
-router.delete('/drivers/:id', stubs.deleteDriver);
+// Moved to real routes
 
 // Maintenance
 // Moved to real routes

@@ -31,13 +31,12 @@ export const getVehicles = async (req: Request, res: Response) => {
 
 export const createVehicle = async (req: Request, res: Response) => {
   try {
-    const existing = await VehicleModel.findOne({ registrationNumber: req.body.registrationNumber });
-    if (existing) {
-      return res.status(409).json({ message: 'Registration number already exists' });
-    }
     const vehicle = await VehicleModel.create(req.body);
     res.status(201).json(vehicle);
   } catch (error: any) {
+    if (error.code === 11000) {
+      return res.status(409).json({ message: 'Registration number already exists' });
+    }
     res.status(500).json({ error: 'Failed to create vehicle' });
   }
 };

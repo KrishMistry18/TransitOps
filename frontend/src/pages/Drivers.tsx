@@ -6,10 +6,10 @@ import {
   Button, Card, Input, Select, Table, TableHeader, TableRow, 
   TableHead, TableBody, TableCell, StatusChip, Modal, SafetyScore, Avatar
 } from '../components/ui';
-import { Search, Plus, AlertCircle } from 'lucide-react';
+import { Search, Plus, AlertCircle, Trash2 } from 'lucide-react';
 
 export default function Drivers() {
-  const { token } = useContext(AuthContext);
+  const { token, user } = useContext(AuthContext);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -22,6 +22,8 @@ export default function Drivers() {
     contactNumber: ''
   });
   const [error, setError] = useState('');
+  
+  const canEdit = user?.role === 'DISPATCHER';
 
   const fetchDrivers = async () => {
     try {
@@ -78,6 +80,21 @@ export default function Drivers() {
     return new Date(dateString) < new Date();
   };
 
+  const handleSuspend = async (id: string) => {
+    if (!confirm('Are you sure you want to suspend this driver?')) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/drivers/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        fetchDrivers();
+      }
+    } catch (err) {
+      console.error('Failed to suspend driver');
+    }
+  };
+
   const totals = {
     available: drivers.filter(d => d.status === 'AVAILABLE').length,
     onTrip: drivers.filter(d => d.status === 'ON_TRIP').length,
@@ -111,9 +128,11 @@ export default function Drivers() {
             />
           </div>
         </div>
-        <Button icon={<Plus size={16} />} onClick={() => setShowAddModal(true)}>
-          Add Driver
-        </Button>
+        {canEdit && (
+          <Button icon={<Plus size={16} />} onClick={() => setShowAddModal(true)}>
+            Add Driver
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -127,6 +146,7 @@ export default function Drivers() {
               <TableHead>CONTACT</TableHead>
               <TableHead>SAFETY</TableHead>
               <TableHead>STATUS</TableHead>
+              {canEdit && <TableHead>ACTIONS</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -153,12 +173,25 @@ export default function Drivers() {
                   <TableCell>
                     <StatusChip status={d.status} domain="driver" />
                   </TableCell>
+                  {canEdit && (
+                    <TableCell>
+                      {d.status !== 'SUSPENDED' && (
+                        <button 
+                          onClick={() => handleSuspend(d.id)} 
+                          className="p-2 text-text-muted hover:text-status-danger transition-colors bg-white/5 hover:bg-status-danger/10 rounded-md"
+                          title="Suspend Driver"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               );
             })}
             {drivers.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-text-muted">
+                <TableCell colSpan={canEdit ? 8 : 7} className="text-center py-8 text-text-muted">
                   No drivers found
                 </TableCell>
               </TableRow>

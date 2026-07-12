@@ -53,10 +53,6 @@ export const getExpiringLicenses = async (req: Request, res: Response) => {
 
 export const createDriver = async (req: Request, res: Response) => {
   try {
-    const existing = await DriverModel.findOne({ licenseNumber: req.body.licenseNumber });
-    if (existing) {
-      return res.status(409).json({ message: 'License number already exists' });
-    }
     const data = { ...req.body };
     if (data.licenseExpiryDate) {
       data.licenseExpiryDate = new Date(data.licenseExpiryDate);
@@ -64,6 +60,9 @@ export const createDriver = async (req: Request, res: Response) => {
     const driver = await DriverModel.create(data);
     res.status(201).json(driver);
   } catch (error: any) {
+    if (error.code === 11000) {
+      return res.status(409).json({ message: 'License number already exists' });
+    }
     res.status(500).json({ error: 'Failed to create driver' });
   }
 };

@@ -52,6 +52,9 @@ export const createMaintenanceLog = async (req: Request, res: Response) => {
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'Vehicle already has an active maintenance log' });
+    }
     res.status(500).json({ error: 'Failed to create maintenance log' });
   }
 };

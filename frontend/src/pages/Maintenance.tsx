@@ -1,15 +1,17 @@
-﻿import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { MaintenanceLog, Vehicle } from '@shared/types';
 import { AuthContext } from '../context/AuthContext';
 import { 
   Button, Card, Input, Select, Table, TableHeader, TableRow, 
   TableHead, TableBody, TableCell, StatusChip 
 } from '../components/ui';
+import { CheckCircle } from 'lucide-react';
 
 type MaintenanceLogWithVehicle = MaintenanceLog & { vehicle: Vehicle };
 
 export default function Maintenance() {
-  const { token } = useContext(AuthContext);
+  const { token, user } = useContext(AuthContext);
+  const canEdit = user?.role === 'FLEET_MANAGER';
   const [logs, setLogs] = useState<MaintenanceLogWithVehicle[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [search, setSearch] = useState('');
@@ -80,6 +82,20 @@ export default function Maintenance() {
     }
   };
 
+  const handleCloseLog = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/maintenance/${id}/close`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        fetchData();
+      }
+    } catch (err) {
+      console.error('Failed to close maintenance log');
+    }
+  };
+
   const filteredLogs = logs.filter(log => 
     search ? log.vehicle.registrationNumber.toLowerCase().includes(search.toLowerCase()) || 
              log.vehicle.name.toLowerCase().includes(search.toLowerCase()) : true
@@ -106,11 +122,12 @@ export default function Maintenance() {
         <div className="w-full lg:w-1/3">
           <h3 className="text-[1.125rem] font-display font-semibold text-text-primary mb-4 uppercase tracking-[0.04em]">Log Service Record</h3>
           <Card>
-            <form onSubmit={handleSave} className="space-y-4">
-              {error && <div className="text-status-danger text-sm font-medium">{error}</div>}
-              
-              <div>
-                <label className="block text-[0.75rem] font-medium text-text-muted uppercase tracking-[0.04em] mb-1">Vehicle</label>
+            {canEdit ? (
+              <form onSubmit={handleSave} className="space-y-4">
+                {error && <div className="text-status-danger text-sm font-medium">{error}</div>}
+                
+                <div>
+                  <label className="block text-[0.75rem] font-medium text-text-muted uppercase tracking-[0.04em] mb-1">Vehicle</label>
                 <Select
                   required
                   value={formData.vehicleId}
@@ -184,9 +201,14 @@ export default function Maintenance() {
                 </div>
                 <p className="text-[0.75rem] text-text-muted mt-2 italic">
                   Note: In Shop vehicles are removed from the dispatch pool.
-                </p>
+                  </p>
+                </div>
+              </form>
+            ) : (
+              <div className="py-8 text-center text-text-muted">
+                You do not have permission to log service records.
               </div>
-            </form>
+            )}
           </Card>
         </div>
 
@@ -201,6 +223,7 @@ export default function Maintenance() {
                   <TableHead>SERVICE</TableHead>
                   <TableHead>COST</TableHead>
                   <TableHead>STATUS</TableHead>
+                  {canEdit && <TableHead>ACTIONS</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -212,11 +235,24 @@ export default function Maintenance() {
                     <TableCell>
                       <StatusChip status={log.status === 'ACTIVE' ? 'IN_SHOP' : 'AVAILABLE'} domain="vehicle" />
                     </TableCell>
+                    {canEdit && (
+                      <TableCell>
+                        {log.status === 'ACTIVE' && (
+                          <button 
+                            onClick={() => handleCloseLog(log.id)} 
+                            className="p-2 text-text-muted hover:text-status-available transition-colors bg-white/5 hover:bg-status-available/10 rounded-md"
+                            title="Close Maintenance Record"
+                          >
+                            <CheckCircle size={16} />
+                          </button>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
                 {filteredLogs.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-text-muted">
+                    <TableCell colSpan={canEdit ? 5 : 4} className="text-center py-8 text-text-muted">
                       No service records found
                     </TableCell>
                   </TableRow>
