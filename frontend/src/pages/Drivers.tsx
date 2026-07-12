@@ -125,6 +125,7 @@ export default function Drivers() {
               onChange={(e) => setSearch(e.target.value)}
               icon={<Search size={16} />}
               shortcut="⌘K"
+              variant="pill"
             />
           </div>
         </div>
@@ -156,17 +157,17 @@ export default function Drivers() {
                 <TableRow key={d.id} className={expired ? 'border-l-4 border-l-status-danger' : ''}>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar name={d.name} />
-                      <span className="font-semibold text-[0.9375rem] text-white">{d.name}</span>
+                      <Avatar name={d.name} id={d.id} />
+                      <span className="font-[700] text-[1rem] tracking-tight text-white">{d.name}</span>
                     </div>
                   </TableCell>
-                  <TableCell mono className="text-text-muted">{d.licenseNumber}</TableCell>
-                  <TableCell className="text-text-muted">{d.licenseCategory}</TableCell>
-                  <TableCell mono className={cn("text-text-muted", expired && 'text-status-danger font-bold')}>
+                  <TableCell mono className="text-white/60 font-light">{d.licenseNumber}</TableCell>
+                  <TableCell className="text-white/60 font-light">{d.licenseCategory}</TableCell>
+                  <TableCell mono className={cn("text-white/60 font-light", expired && 'text-status-danger font-bold')}>
                     {new Date(d.licenseExpiryDate).toLocaleDateString()}
                     {expired && ' (EXPIRED)'}
                   </TableCell>
-                  <TableCell mono className="text-text-muted">{d.contactNumber}</TableCell>
+                  <TableCell mono className="text-white/60 font-light">{d.contactNumber}</TableCell>
                   <TableCell>
                     <SafetyScore score={d.safetyScore} />
                   </TableCell>
@@ -199,27 +200,30 @@ export default function Drivers() {
           </TableBody>
         </Table>
 
-        <div className="mt-8 mb-4">
-          <div className="inline-flex items-center gap-2 bg-[#1B212B]/40 backdrop-blur-md rounded-xl p-1.5 border border-white/5 shadow-sm">
+        <div className="mt-10 mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          <div className="inline-flex items-center bg-[rgba(27,33,43,0.6)] backdrop-blur-[12px] rounded-full p-1.5 border border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
             {[
-              { label: 'Available', count: totals.available, color: 'bg-status-available' },
-              { label: 'On Trip', count: totals.onTrip, color: 'bg-status-pending' },
-              { label: 'Off Duty', count: totals.offDuty, color: 'bg-status-inshop' },
-              { label: 'Suspended', count: totals.suspended, color: 'bg-status-danger' },
+              { label: 'Available', count: totals.available, color: 'bg-status-available', shadow: 'shadow-[0_0_8px_rgba(34,197,94,0.4)]' },
+              { label: 'On Trip', count: totals.onTrip, color: 'bg-status-pending', shadow: 'shadow-[0_0_8px_rgba(245,158,11,0.4)]' },
+              { label: 'Off Duty', count: totals.offDuty, color: 'bg-status-inshop', shadow: 'shadow-[0_0_8px_rgba(100,116,139,0.4)]' },
+              { label: 'Suspended', count: totals.suspended, color: 'bg-status-danger', shadow: 'shadow-[0_0_8px_rgba(239,68,68,0.4)]' },
             ].map((stat, i, arr) => (
               <React.Fragment key={stat.label}>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-white/[0.02] rounded-[8px] hover:bg-white/[0.04] transition-colors cursor-default">
-                  <span className={cn("w-2 h-2 rounded-full", stat.color)} />
-                  <span className="text-[0.65rem] font-medium text-text-muted uppercase tracking-[0.06em]">{stat.label}</span>
-                  <span className="text-sm font-bold text-white ml-1">{stat.count}</span>
+                <div className="flex items-center gap-3 px-4 py-2 rounded-full hover:bg-white/[0.04] transition-all cursor-default">
+                  <span className={cn("w-2.5 h-2.5 rounded-full", stat.color, stat.shadow)} />
+                  <div className="flex flex-col">
+                    <span className="text-[0.6rem] font-medium text-white/50 uppercase tracking-[0.08em] leading-tight">{stat.label}</span>
+                    <span className="text-[1.1rem] font-bold text-white leading-tight">{stat.count}</span>
+                  </div>
                 </div>
-                {i < arr.length - 1 && <div className="w-[1px] h-6 bg-white/5" />}
+                {i < arr.length - 1 && <div className="w-[1px] h-8 bg-white/5 mx-1" />}
               </React.Fragment>
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-4 bg-[#1B212B]/40 backdrop-blur-md border border-white/5 border-l-status-danger/80 p-4 rounded-xl shadow-sm text-sm text-text-primary">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-status-danger/10 shrink-0">
+        
+        <div className="flex items-center gap-4 bg-[rgba(27,33,43,0.6)] backdrop-blur-[12px] border border-white/5 border-l-status-danger/80 border-l-[3px] p-4 rounded-[12px] shadow-[0_8px_30px_rgba(0,0,0,0.3)] text-sm text-text-primary">
+          <div className="flex items-center justify-center w-9 h-9 rounded-full bg-status-danger/10 shrink-0 border border-status-danger/20">
             <AlertCircle className="w-4 h-4 text-status-danger" />
           </div>
           <span><strong className="text-white">Rule:</strong> Expired license or Suspended status &rarr; blocked from trip assignment</span>

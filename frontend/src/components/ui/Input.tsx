@@ -4,10 +4,11 @@ import { cn } from './utils';
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   icon?: React.ReactNode;
   shortcut?: string;
+  variant?: 'default' | 'pill';
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, icon, shortcut, ...props }, ref) => {
+  ({ className, type, icon, shortcut, variant = 'default', ...props }, ref) => {
     return (
       <div className="relative w-full">
         {icon && (
@@ -18,7 +19,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           type={type}
           className={cn(
-            "flex h-[36px] w-full rounded-[10px] border border-border bg-surface-raised shadow-inner py-1 text-sm text-text-primary transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-muted/50 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-accent-primary focus-visible:shadow-[0_0_12px_rgba(91,141,239,0.3)] focus-visible:bg-[#2A3441] disabled:cursor-not-allowed disabled:opacity-50",
+            "flex h-[36px] w-full border border-border bg-surface-raised shadow-inner py-1 text-sm text-text-primary transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-muted/50 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-accent-primary focus-visible:shadow-[0_0_12px_rgba(91,141,239,0.3)] focus-visible:bg-[#2A3441] disabled:cursor-not-allowed disabled:opacity-50",
+            variant === 'pill' ? "rounded-full" : "rounded-[10px]",
             icon ? "pl-9" : "pl-3",
             shortcut ? "pr-12" : "pr-3",
             className

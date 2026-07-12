@@ -34,7 +34,7 @@ export function SafetyScore({ score, className }: SafetyScoreProps) {
           fill="transparent" 
         />
       </svg>
-      <span className="absolute text-[0.6rem] font-bold font-display tracking-tighter text-text-primary">
+      <span className="absolute text-[0.65rem] font-extrabold font-display tracking-tighter text-white">
         {score}
       </span>
     </div>
