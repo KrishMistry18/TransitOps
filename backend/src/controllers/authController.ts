@@ -18,11 +18,11 @@ export const login = async (req: Request, res: Response) => {
       return res.status(423).json({ message: 'Account locked. Try again later.' });
     }
 
-    const isValid = await bcrypt.compare(password, user.password);
+    const isValid = await bcrypt.compare(password, user.passwordHash);
 
     if (!isValid) {
       const attempts = user.failedLoginAttempts + 1;
-      let lockedUntil = null;
+      let lockedUntil: Date | undefined = undefined;
       if (attempts >= 5) {
         lockedUntil = new Date(Date.now() + 15 * 60 * 1000);
       }
@@ -39,7 +39,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     user.failedLoginAttempts = 0;
-    user.lockedUntil = null;
+    user.lockedUntil = undefined;
     await user.save();
 
     const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '1d' });

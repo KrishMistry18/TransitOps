@@ -1,15 +1,30 @@
-import mongoose, { Schema } from 'mongoose';
-import { Vehicle } from '@shared/types';
+import mongoose, { Schema, Document } from 'mongoose';
+import { VehicleStatus } from '@shared/types';
+
+export interface IVehicle extends Omit<Document, 'model'> {
+  registrationNumber: string;
+  name: string;
+  model?: string;
+  type: string;
+  maxLoadCapacity: number;
+  odometer: number;
+  acquisitionCost: number;
+  status: VehicleStatus;
+  region: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 const VehicleSchema = new Schema({
-  registrationNumber: { type: String, required: true, unique: true },
-  name: { type: String, required: true },
-  type: { type: String, required: true },
-  maxLoadCapacity: { type: Number, required: true },
-  odometer: { type: Number, required: true },
-  acquisitionCost: { type: Number, required: true },
-  status: { type: String, enum: ["AVAILABLE", "ON_TRIP", "IN_SHOP", "RETIRED"], required: true },
-  region: { type: String, required: true },
+  registrationNumber: { type: String, required: true, unique: true, uppercase: true, trim: true },
+  name: { type: String },
+  model: { type: String },
+  type: { type: String },
+  maxLoadCapacity: { type: Number, required: true, min: 0 },
+  odometer: { type: Number, default: 0, min: 0 },
+  acquisitionCost: { type: Number, required: true, min: 0 },
+  status: { type: String, enum: ["AVAILABLE", "ON_TRIP", "IN_SHOP", "RETIRED"], default: "AVAILABLE" },
+  region: { type: String },
 }, { timestamps: true });
 
 VehicleSchema.set('toJSON', {
@@ -21,4 +36,4 @@ VehicleSchema.set('toJSON', {
   }
 });
 
-export const VehicleModel = mongoose.model('Vehicle', VehicleSchema);
+export const VehicleModel = mongoose.model<IVehicle>('Vehicle', VehicleSchema);

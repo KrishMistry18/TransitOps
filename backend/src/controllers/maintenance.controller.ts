@@ -35,7 +35,7 @@ export const createMaintenanceLog = async (req: Request, res: Response) => {
     }
 
     const log = await MaintenanceLogModel.create([{
-      vehicleId,
+      vehicle: vehicleId,
       description,
       cost: Number(cost),
       startDate: new Date(date),
@@ -61,7 +61,7 @@ export const closeMaintenanceLog = async (req: Request, res: Response) => {
   session.startTransaction();
   try {
     const logId = req.params.id;
-    const log = await MaintenanceLogModel.findById(logId).populate('vehicleId').session(session);
+    const log = await MaintenanceLogModel.findById(logId).populate('vehicle').session(session);
 
     if (!log) {
       await session.abortTransaction();
@@ -80,8 +80,8 @@ export const closeMaintenanceLog = async (req: Request, res: Response) => {
     await log.save({ session });
 
     let vehicle = null;
-    if (log.vehicleId) {
-      vehicle = await VehicleModel.findById(log.vehicleId._id).session(session);
+    if (log.vehicle) {
+      vehicle = await VehicleModel.findById(log.vehicle._id).session(session);
       if (vehicle && vehicle.status !== 'RETIRED') {
         vehicle.status = 'AVAILABLE';
         await vehicle.save({ session });
@@ -105,13 +105,11 @@ export const closeMaintenanceLog = async (req: Request, res: Response) => {
 export const getMaintenanceLogs = async (req: Request, res: Response) => {
   try {
     const logs = await MaintenanceLogModel.find()
-      .populate({ path: 'vehicleId', select: '-__v' })
+      .populate({ path: 'vehicle', select: '-__v' })
       .sort({ startDate: -1 });
     
-    // map vehicleId back to vehicle field for API consistency
     const mappedLogs = logs.map(l => {
       const doc: any = l.toJSON();
-      doc.vehicle = doc.vehicleId;
       return doc;
     });
     res.json(mappedLogs);

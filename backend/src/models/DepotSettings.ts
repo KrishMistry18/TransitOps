@@ -1,10 +1,15 @@
-import mongoose, { Schema } from 'mongoose';
-import { DepotSettings } from '@shared/types';
+import mongoose, { Schema, Document } from 'mongoose';
+
+export interface IDepotSettings extends Document {
+  depotName: string;
+  currency: string;
+  distanceUnit: string;
+}
 
 const DepotSettingsSchema = new Schema({
-  depotName: { type: String, required: true },
-  currency: { type: String, required: true, default: 'USD' },
-  distanceUnit: { type: String, required: true, default: 'km' },
+  depotName: { type: String },
+  currency: { type: String, default: "INR" },
+  distanceUnit: { type: String, default: "km" },
 }, { timestamps: true });
 
 DepotSettingsSchema.set('toJSON', {
@@ -16,4 +21,4 @@ DepotSettingsSchema.set('toJSON', {
   }
 });
 
-export const DepotSettingsModel = mongoose.model('DepotSettings', DepotSettingsSchema);
+export const DepotSettingsModel = mongoose.model<IDepotSettings>('DepotSettings', DepotSettingsSchema);
