@@ -114,7 +114,7 @@ export default function Vehicles() {
             />
           </div>
         </div>
-        <Button onClick={() => setShowAddModal(true)} accent>
+        <Button onClick={() => setShowAddModal(true)}>
           + Add Vehicle
         </Button>
       </div>
@@ -237,7 +237,7 @@ export default function Vehicles() {
           
           <div className="pt-4 flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setShowAddModal(false)}>Cancel</Button>
-            <Button type="submit" accent>Save Vehicle</Button>
+            <Button type="submit">Save Vehicle</Button>
           </div>
         </form>
       </Modal>

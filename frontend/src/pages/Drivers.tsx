@@ -107,7 +107,7 @@ export default function Drivers() {
             />
           </div>
         </div>
-        <Button onClick={() => setShowAddModal(true)} accent>
+        <Button onClick={() => setShowAddModal(true)}>
           + Add Driver
         </Button>
       </div>
@@ -227,7 +227,7 @@ export default function Drivers() {
           
           <div className="pt-4 flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setShowAddModal(false)}>Cancel</Button>
-            <Button type="submit" accent>Save Driver</Button>
+            <Button type="submit">Save Driver</Button>
           </div>
         </form>
       </Modal>

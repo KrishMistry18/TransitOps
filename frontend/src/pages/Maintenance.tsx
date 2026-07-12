@@ -166,7 +166,7 @@ export default function Maintenance() {
               </div>
               
               <div className="pt-2">
-                <Button type="submit" accent className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Saving...' : 'Save'}
                 </Button>
               </div>
