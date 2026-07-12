@@ -190,23 +190,7 @@ export default function Maintenance() {
                   {loading ? 'Saving...' : 'Save'}
                 </Button>
               </div>
-
-              <div className="mt-6 pt-4 border-t border-border flex flex-col gap-2">
-                <div className="flex items-center text-[0.75rem]">
-                  <span className="text-status-available w-20 font-medium">Available</span>
-                  <span className="text-text-muted mx-2">â”€â”€â”€â”€ creating active record â”€â”€â”€â”€â–¶</span>
-                  <span className="text-status-inshop font-medium">In Shop</span>
-                </div>
-                <div className="flex items-center text-[0.75rem]">
-                  <span className="text-status-inshop w-20 font-medium">In Shop</span>
-                  <span className="text-text-muted mx-2">â”€â”€â”€â”€ closing record (not retired) â”€â”€â”€â”€â–¶</span>
-                  <span className="text-status-available font-medium">Available</span>
-                </div>
-                <p className="text-[0.75rem] text-text-muted mt-2 italic">
-                  Note: In Shop vehicles are removed from the dispatch pool.
-                  </p>
-                </div>
-              </form>
+            </form>
             ) : (
               <div className="py-8 text-center text-text-muted">
                 You do not have permission to log service records.
