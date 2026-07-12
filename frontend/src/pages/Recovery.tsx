@@ -34,7 +34,7 @@ const DISRUPTION_TYPES = [
 
 export default function Recovery() {
   const { token, user } = useContext(AuthContext);
-  const canManage = user?.role === 'FLEET_MANAGER';
+  const canManage = user?.role === 'ADMIN' || user?.role === 'FLEET_MANAGER';
 
   const [trips, setTrips] = useState<PopulatedTrip[]>([]);
   const [active, setActive] = useState<PopulatedTrip | null>(null);

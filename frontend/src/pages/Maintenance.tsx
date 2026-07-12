@@ -13,7 +13,7 @@ type MaintenanceLogWithVehicle = MaintenanceLog & { vehicle: Vehicle };
 export default function Maintenance() {
   const { token, user } = useContext(AuthContext);
   const { completeStep } = useDemo();
-  const canEdit = user?.role === 'FLEET_MANAGER';
+  const canEdit = user?.role === 'ADMIN' || user?.role === 'FLEET_MANAGER';
   const [logs, setLogs] = useState<MaintenanceLogWithVehicle[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [search, setSearch] = useState('');

@@ -21,7 +21,7 @@ export default function Analytics() {
   const { token, user } = useContext(AuthContext);
   const { completeStep } = useDemo();
   const [data, setData] = useState<VehicleAnalytics[]>([]);
-  const canView = user?.role === 'FINANCIAL_ANALYST' || user?.role === 'FLEET_MANAGER';
+  const canView = user?.role === 'ADMIN' || user?.role === 'FINANCIAL_ANALYST' || user?.role === 'FLEET_MANAGER';
 
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -115,7 +115,7 @@ export default function Analytics() {
                 <RechartsTooltip 
                   cursor={{ fill: '#334155', opacity: 0.4 }}
                   contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
-                  formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Revenue']}
+                  formatter={(value: any) => [`₹${Number(value ?? 0).toLocaleString()}`, 'Revenue']}
                 />
                 <Bar dataKey="revenue" fill="#22c55e" radius={[4, 4, 0, 0]} barSize={40} />
               </BarChart>
@@ -137,7 +137,7 @@ export default function Analytics() {
                 <RechartsTooltip 
                   cursor={{ fill: '#334155', opacity: 0.4 }}
                   contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
-                  formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Cost']}
+                  formatter={(value: any) => [`₹${Number(value ?? 0).toLocaleString()}`, 'Cost']}
                 />
                 <Bar dataKey="cost" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={20} />
               </BarChart>

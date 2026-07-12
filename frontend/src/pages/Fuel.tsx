@@ -20,8 +20,9 @@ interface FuelStats {
 
 export default function Fuel() {
   const { token, user } = useContext(AuthContext);
-  const canManage = user?.role === 'FINANCIAL_ANALYST' || user?.role === 'FLEET_MANAGER';
-  const canView = user?.role === 'FINANCIAL_ANALYST' || user?.role === 'FLEET_MANAGER';
+  const isAdmin = user?.role === 'ADMIN';
+  const canManage = isAdmin || user?.role === 'FINANCIAL_ANALYST' || user?.role === 'FLEET_MANAGER';
+  const canView = isAdmin || user?.role === 'FINANCIAL_ANALYST' || user?.role === 'FLEET_MANAGER';
 
   const [fuelLogs, setFuelLogs] = useState<FuelLogPopulated[]>([]);
   const [stats, setStats] = useState<FuelStats>({ totalLogs: 0, flaggedCount: 0, avgEfficiency: 0, totalSpend: 0 });

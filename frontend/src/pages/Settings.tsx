@@ -74,7 +74,7 @@ export default function Settings() {
               type="text"
               value={settings.depotName}
               onChange={e => setSettings({ ...settings, depotName: e.target.value })}
-              disabled={user?.role !== 'FLEET_MANAGER'}
+              disabled={user?.role !== 'ADMIN' && user?.role !== 'FLEET_MANAGER'}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -83,7 +83,7 @@ export default function Settings() {
               <Select
                 value={settings.currency}
                 onChange={e => setSettings({ ...settings, currency: e.target.value })}
-                disabled={user?.role !== 'FLEET_MANAGER'}
+                disabled={user?.role !== 'ADMIN' && user?.role !== 'FLEET_MANAGER'}
               >
                 <option value="INR">INR (₹)</option>
                 <option value="USD">USD ($)</option>
@@ -96,14 +96,14 @@ export default function Settings() {
               <Select
                 value={settings.distanceUnit}
                 onChange={e => setSettings({ ...settings, distanceUnit: e.target.value })}
-                disabled={user?.role !== 'FLEET_MANAGER'}
+                disabled={user?.role !== 'ADMIN' && user?.role !== 'FLEET_MANAGER'}
               >
                 <option value="km">Kilometers (km)</option>
                 <option value="mi">Miles (mi)</option>
               </Select>
             </div>
           </div>
-          {user?.role === 'FLEET_MANAGER' && (
+          {(user?.role === 'ADMIN' || user?.role === 'FLEET_MANAGER') && (
             <Button
               type="submit"
               disabled={saving}

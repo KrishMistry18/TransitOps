@@ -46,7 +46,7 @@ export default function Fleet() {
   });
   const [error, setError] = useState('');
   
-  const canEdit = user?.role === 'FLEET_MANAGER';
+  const canEdit = user?.role === 'ADMIN' || user?.role === 'FLEET_MANAGER';
 
   const fetchVehicles = async () => {
     try {

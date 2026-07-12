@@ -26,7 +26,7 @@ export default function Drivers() {
   });
   const [error, setError] = useState('');
   
-  const canEdit = user?.role === 'SAFETY_OFFICER'; // drivers:full — Safety_Officer (Req 2.5)
+  const canEdit = user?.role === 'ADMIN' || user?.role === 'SAFETY_OFFICER'; // drivers:full — Safety_Officer (Req 2.5)
   const [sortColumn, setSortColumn] = useState('');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 

@@ -56,7 +56,7 @@ function TripStepper({ status }: { status: string }) {
 export default function Trips() {
   const { token, user } = useContext(AuthContext);
   const { completeStep } = useDemo();
-  const canManage = user?.role === 'DRIVER'; // trips:full — Driver_Role (Req 2.7)
+  const canManage = user?.role === 'ADMIN' || user?.role === 'DRIVER'; // trips:full — Driver_Role (Req 2.7)
 
   const [trips, setTrips] = useState<TripWithPopulated[]>([]);
   const [availVehicles, setAvailVehicles] = useState<Vehicle[]>([]);
