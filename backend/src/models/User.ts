@@ -21,7 +21,7 @@ const UserSchema = new Schema({
   lockedUntil: { type: Date },
 }, { timestamps: true });
 
-// Pre-save hook placeholder for password hashing (implemented in step 3)
+// pre-save hook placeholder for password hashing (implemented in step 3, not here)
 
 UserSchema.set('toJSON', {
   virtuals: true,

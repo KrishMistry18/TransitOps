@@ -23,6 +23,9 @@ const DriverSchema = new Schema({
   status: { type: String, enum: ["AVAILABLE", "ON_TRIP", "OFF_DUTY", "SUSPENDED"], default: "AVAILABLE" },
 }, { timestamps: true });
 
+// Enforce uniqueness via a real database unique index
+DriverSchema.index({ licenseNumber: 1 }, { unique: true });
+
 DriverSchema.set('toJSON', {
   virtuals: true,
   transform: (doc: any, ret: any) => {

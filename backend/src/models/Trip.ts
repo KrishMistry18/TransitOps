@@ -37,7 +37,11 @@ const TripSchema = new Schema({
   createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
-// Partial-style safeguards to prevent double-booking
+// "at most one ACTIVE MaintenanceLog per vehicle" and "at most one DISPATCHED trip per vehicle/driver" cannot
+// be expressed as a native Mongoose unique index (Mongo doesn't support partial filtered uniqueness the way 
+// Postgres does without a partial index defined directly via createIndex) — so add real MongoDB partial indexes 
+// via schema.index() with a partialFilterExpression
+
 // at most one DISPATCHED trip per vehicle
 TripSchema.index(
   { vehicle: 1 },

@@ -21,7 +21,11 @@ const MaintenanceLogSchema = new Schema({
   endDate: { type: Date },
 }, { timestamps: true });
 
-// Partial-style safeguard to prevent double-booking
+// "at most one ACTIVE MaintenanceLog per vehicle" and "at most one DISPATCHED trip per vehicle/driver" cannot
+// be expressed as a native Mongoose unique index (Mongo doesn't support partial filtered uniqueness the way 
+// Postgres does without a partial index defined directly via createIndex) — so add real MongoDB partial indexes 
+// via schema.index() with a partialFilterExpression
+
 // at most one ACTIVE MaintenanceLog per vehicle
 MaintenanceLogSchema.index(
   { vehicle: 1 },
