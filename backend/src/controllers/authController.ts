@@ -1,11 +1,13 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { AuthRequest } from '../middleware/auth';
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtkey123';
 
-const login = async (req, res) => {
+export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   try {
     const user = await prisma.user.findUnique({ where: { email } });
@@ -24,7 +26,7 @@ const login = async (req, res) => {
       const attempts = user.failedLoginAttempts + 1;
       let lockedUntil = null;
       if (attempts >= 5) {
-        lockedUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 mins lock
+        lockedUntil = new Date(Date.now() + 15 * 60 * 1000);
       }
       
       await prisma.user.update({
@@ -39,7 +41,6 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Reset attempts on success
     await prisma.user.update({
       where: { id: user.id },
       data: { failedLoginAttempts: 0, lockedUntil: null }
@@ -63,8 +64,11 @@ const login = async (req, res) => {
   }
 };
 
-const getMe = async (req, res) => {
+export const getMe = async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
       select: { id: true, email: true, name: true, role: true }
@@ -75,5 +79,3 @@ const getMe = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
-module.exports = { login, getMe };

@@ -18,7 +18,7 @@ export default function Settings() {
       .then(data => setPermissions(data));
   }, [token]);
 
-  const handleSave = async (e) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setMessage('');

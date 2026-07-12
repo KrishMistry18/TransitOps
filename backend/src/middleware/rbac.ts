@@ -1,5 +1,8 @@
-const requireRole = (...roles) => {
-  return (req, res, next) => {
+import { Response, NextFunction } from 'express';
+import { AuthRequest } from './auth';
+
+export const requireRole = (...roles: string[]) => {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user || !req.user.role) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -11,5 +14,3 @@ const requireRole = (...roles) => {
     next();
   };
 };
-
-module.exports = { requireRole };

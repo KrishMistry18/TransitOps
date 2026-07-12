@@ -1,6 +1,7 @@
-const express = require('express');
+import express from 'express';
+import * as stubs from '../controllers/stubsController';
+
 const router = express.Router();
-const stubs = require('../controllers/stubsController');
 
 // Vehicles
 router.get('/vehicles', stubs.getVehicles);
@@ -41,4 +42,4 @@ router.get('/reports/vehicles', stubs.getVehiclesReport);
 router.get('/reports/fleet-utilization', stubs.getFleetUtilization);
 router.get('/reports/vehicles/export', stubs.exportVehiclesCSV);
 
-module.exports = router;
+export default router;

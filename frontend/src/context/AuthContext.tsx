@@ -1,16 +1,34 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
 
-export const AuthContext = createContext();
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  role: string;
+}
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token') || null);
-  const [loading, setLoading] = useState(true);
+export interface AuthContextType {
+  user: User | null;
+  token: string | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+}
+
+export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(localStorage.getItem('token') || null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (token) {
       localStorage.setItem('token', token);
-      // Fetch user profile
       fetch('http://localhost:5000/api/auth/me', {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -32,7 +50,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  const login = async (email, password) => {
+  const login = async (email: string, password: string) => {
     const res = await fetch('http://localhost:5000/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

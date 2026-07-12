@@ -1,5 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
+import { PrismaClient, VehicleStatus, DriverStatus, TripStatus, MaintenanceStatus, ExpenseType } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -60,7 +60,7 @@ async function main() {
   });
 
   // Drivers
-  const driverStatuses = ['AVAILABLE', 'ON_TRIP', 'OFF_DUTY', 'SUSPENDED', 'AVAILABLE'];
+  const driverStatuses: DriverStatus[] = ['AVAILABLE', 'ON_TRIP', 'OFF_DUTY', 'SUSPENDED', 'AVAILABLE'];
   const drivers = [];
   for (let i = 0; i < 5; i++) {
     const driver = await prisma.driver.create({
@@ -68,7 +68,7 @@ async function main() {
         name: `Driver ${i + 1}`,
         licenseNumber: `LIC${1000 + i}`,
         licenseCategory: i % 2 === 0 ? 'CDL-A' : 'CDL-B',
-        licenseExpiryDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * (i === 3 ? -1 : 1)), // One expired
+        licenseExpiryDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * (i === 3 ? -1 : 1)),
         contactNumber: `555-010${i}`,
         status: driverStatuses[i],
         safetyScore: 90 + i
@@ -78,7 +78,7 @@ async function main() {
   }
 
   // Vehicles
-  const vehicleStatuses = ['AVAILABLE', 'AVAILABLE', 'ON_TRIP', 'ON_TRIP', 'IN_SHOP', 'RETIRED'];
+  const vehicleStatuses: VehicleStatus[] = ['AVAILABLE', 'AVAILABLE', 'ON_TRIP', 'ON_TRIP', 'IN_SHOP', 'RETIRED'];
   const vehicles = [];
   for (let i = 0; i < 6; i++) {
     const vehicle = await prisma.vehicle.create({

@@ -1,5 +1,4 @@
-// Access levels: "full" | "view" | "none"
-const PERMISSIONS = {
+export const PERMISSIONS: Record<string, Record<string, string>> = {
   FLEET_MANAGER: {
     fleet: "full",
     drivers: "view",
@@ -29,5 +28,3 @@ const PERMISSIONS = {
     analytics: "full"
   }
 };
-
-module.exports = { PERMISSIONS };

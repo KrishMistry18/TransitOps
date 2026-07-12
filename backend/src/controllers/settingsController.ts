@@ -1,9 +1,10 @@
-const { PrismaClient } = require('@prisma/client');
-const { PERMISSIONS } = require('../config/permissions');
+import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+import { PERMISSIONS } from '../config/permissions';
 
 const prisma = new PrismaClient();
 
-const getSettings = async (req, res) => {
+export const getSettings = async (req: Request, res: Response) => {
   try {
     let settings = await prisma.depotSettings.findFirst();
     if (!settings) {
@@ -17,7 +18,7 @@ const getSettings = async (req, res) => {
   }
 };
 
-const updateSettings = async (req, res) => {
+export const updateSettings = async (req: Request, res: Response) => {
   const { depotName, currency, distanceUnit } = req.body;
   try {
     const settings = await prisma.depotSettings.findFirst();
@@ -35,8 +36,6 @@ const updateSettings = async (req, res) => {
   }
 };
 
-const getPermissions = (req, res) => {
+export const getPermissions = (req: Request, res: Response) => {
   res.json(PERMISSIONS);
 };
-
-module.exports = { getSettings, updateSettings, getPermissions };

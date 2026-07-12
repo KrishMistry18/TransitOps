@@ -1,10 +1,11 @@
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import authRoutes from './routes/authRoutes';
+import settingsRoutes from './routes/settingsRoutes';
+import stubsRoutes from './routes/stubsRoutes';
 
-const authRoutes = require('./routes/authRoutes');
-const settingsRoutes = require('./routes/settingsRoutes');
-const stubsRoutes = require('./routes/stubsRoutes');
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -16,7 +17,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api', stubsRoutes); // all other routes on /api prefix
 
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
 
 app.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);
