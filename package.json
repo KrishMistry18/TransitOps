@@ -1,0 +1,13 @@
+{
+  "name": "transitops",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npm run start --workspaces",
+    "dev": "npm run dev --workspaces"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
+}
