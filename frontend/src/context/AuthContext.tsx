@@ -1,11 +1,5 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
-
-export interface User {
-  id: number;
-  email: string;
-  name: string;
-  role: string;
-}
+import { User } from '@shared/types';
 
 export interface AuthContextType {
   user: User | null;

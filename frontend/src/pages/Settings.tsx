@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
+import { PermissionsMatrix, FeaturePermissions } from '@shared/types';
 
 export default function Settings() {
   const { token, user } = useContext(AuthContext);
   const [settings, setSettings] = useState({ depotName: '', currency: '', distanceUnit: '' });
-  const [permissions, setPermissions] = useState(null);
+  const [permissions, setPermissions] = useState<PermissionsMatrix | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -121,7 +122,7 @@ export default function Settings() {
                     {feature === 'fuelExp' ? 'Fuel & Expenses' : feature}
                   </td>
                   {Object.keys(permissions).map(role => {
-                    const access = permissions[role][feature];
+                    const access = permissions[role][feature as keyof FeaturePermissions];
                     return (
                       <td key={`${role}-${feature}`} className="px-4 py-3 text-center">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize

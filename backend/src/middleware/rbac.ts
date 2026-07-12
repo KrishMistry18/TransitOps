@@ -1,8 +1,8 @@
-import { Response, NextFunction } from 'express';
-import { AuthRequest } from './auth';
+import { Request, Response, NextFunction } from 'express';
+import { Role } from '@shared/types';
 
-export const requireRole = (...roles: string[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+export const requireRole = (...roles: Role[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user || !req.user.role) {
       return res.status(401).json({ message: 'Unauthorized' });
     }

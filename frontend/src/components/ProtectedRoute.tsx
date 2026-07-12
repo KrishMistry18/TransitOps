@@ -1,9 +1,14 @@
 import React, { useContext } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { Role } from '@shared/types';
 import Sidebar from './Sidebar';
 
-export default function ProtectedRoute() {
+interface ProtectedRouteProps {
+  roles?: Role[];
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ roles }) => {
   const { user, loading } = useContext(AuthContext);
 
   if (loading) return <div className="p-10 text-center">Loading...</div>;
@@ -18,4 +23,6 @@ export default function ProtectedRoute() {
   ) : (
     <Navigate to="/login" replace />
   );
-}
+};
+
+export default ProtectedRoute;

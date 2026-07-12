@@ -1,4 +1,6 @@
-export const PERMISSIONS: Record<string, Record<string, string>> = {
+import { PermissionsMatrix } from '@shared/types';
+
+export const PERMISSIONS: PermissionsMatrix = {
   FLEET_MANAGER: {
     fleet: "full",
     drivers: "view",

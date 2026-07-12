@@ -9,6 +9,9 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "paths": {
+      "@shared/*": ["../shared/*"]
+    },
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,

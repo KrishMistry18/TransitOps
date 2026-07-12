@@ -64,10 +64,11 @@ The database is seeded with 4 default users, one for each role. The password for
 To avoid merge conflicts during the hackathon, please stick to your assigned domains:
 
 ### Fully Implemented (Do not modify unless you are Lead)
-- **Auth & Settings**: `backend/src/controllers/authController.js`, `settingsController.js`, `frontend/src/pages/Login.jsx`, `Settings.jsx`.
-- **App Shell & Layout**: `frontend/src/components/Sidebar.jsx`, `ProtectedRoute.jsx`.
+- **Shared Types**: `shared/types.ts` is the single source of truth for all data shapes in the app. Use the `@shared/*` alias when importing (e.g. `import { Vehicle } from '@shared/types';`).
+- **Auth & Settings**: `backend/src/controllers/authController.ts`, `settingsController.ts`, `frontend/src/pages/Login.tsx`, `Settings.tsx`.
+- **App Shell & Layout**: `frontend/src/components/Sidebar.tsx`, `ProtectedRoute.tsx`.
 - **Database Schema**: `backend/prisma/schema.prisma` (Contact Lead if you need schema changes).
 
 ### Stubbed (Replace with real logic)
-- **Feature Pages**: `frontend/src/pages/Dashboard.jsx`, `Fleet.jsx`, `Drivers.jsx`, `Trips.jsx`, `Maintenance.jsx`, `Fuel.jsx`, `Analytics.jsx`.
-- **API Controllers**: `backend/src/controllers/stubsController.js`. Move your routes into dedicated controllers (e.g. `tripsController.js`) as you build them.
+- **Feature Pages**: `frontend/src/pages/Dashboard.tsx`, `Fleet.tsx`, `Drivers.tsx`, `Trips.tsx`, `Maintenance.tsx`, `Fuel.tsx`, `Analytics.tsx`.
+- **API Controllers**: `backend/src/controllers/stubsController.ts`. Move your routes into dedicated controllers (e.g. `tripsController.ts`) as you build them. All mock data here is strongly typed against `@shared/types`.

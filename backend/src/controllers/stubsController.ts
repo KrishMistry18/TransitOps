@@ -1,35 +1,36 @@
 import { Request, Response } from 'express';
+import { Vehicle, Driver, Trip, MaintenanceLog, FuelLog, Expense, DashboardKPIs, VehicleReportRow } from '@shared/types';
 
-const mockVehicles = [
-  { id: 1, registrationNumber: 'TRK-2000', name: 'Truck 1', type: 'Heavy Duty', status: 'AVAILABLE', region: 'North' },
-  { id: 2, registrationNumber: 'TRK-2001', name: 'Truck 2', type: 'Light Duty', status: 'ON_TRIP', region: 'South' },
-  { id: 3, registrationNumber: 'TRK-2002', name: 'Truck 3', type: 'Heavy Duty', status: 'IN_SHOP', region: 'East' },
-  { id: 4, registrationNumber: 'TRK-2003', name: 'Truck 4', type: 'Light Duty', status: 'RETIRED', region: 'West' }
+const mockVehicles: Vehicle[] = [
+  { id: 1, registrationNumber: 'TRK-2000', name: 'Truck 1', type: 'Heavy Duty', maxLoadCapacity: 10000, odometer: 50000, acquisitionCost: 80000, status: 'AVAILABLE', region: 'North' },
+  { id: 2, registrationNumber: 'TRK-2001', name: 'Truck 2', type: 'Light Duty', maxLoadCapacity: 5000, odometer: 60000, acquisitionCost: 40000, status: 'ON_TRIP', region: 'South' },
+  { id: 3, registrationNumber: 'TRK-2002', name: 'Truck 3', type: 'Heavy Duty', maxLoadCapacity: 12000, odometer: 70000, acquisitionCost: 90000, status: 'IN_SHOP', region: 'East' },
+  { id: 4, registrationNumber: 'TRK-2003', name: 'Truck 4', type: 'Light Duty', maxLoadCapacity: 5500, odometer: 150000, acquisitionCost: 45000, status: 'RETIRED', region: 'West' }
 ];
 
-const mockDrivers = [
-  { id: 1, name: 'Driver 1', licenseNumber: 'LIC1000', status: 'AVAILABLE', licenseExpiryDate: new Date(Date.now() + 1000*60*60*24*365) },
-  { id: 2, name: 'Driver 2', licenseNumber: 'LIC1001', status: 'ON_TRIP', licenseExpiryDate: new Date(Date.now() + 1000*60*60*24*365) },
-  { id: 3, name: 'Driver 3', licenseNumber: 'LIC1002', status: 'OFF_DUTY', licenseExpiryDate: new Date(Date.now() + 1000*60*60*24*365) },
-  { id: 4, name: 'Driver 4', licenseNumber: 'LIC1003', status: 'SUSPENDED', licenseExpiryDate: new Date(Date.now() - 1000*60*60*24*365) }
+const mockDrivers: Driver[] = [
+  { id: 1, name: 'Driver 1', licenseNumber: 'LIC1000', licenseCategory: 'CDL-A', licenseExpiryDate: new Date(Date.now() + 1000*60*60*24*365), contactNumber: '555-0100', safetyScore: 95, status: 'AVAILABLE' },
+  { id: 2, name: 'Driver 2', licenseNumber: 'LIC1001', licenseCategory: 'CDL-B', licenseExpiryDate: new Date(Date.now() + 1000*60*60*24*365), contactNumber: '555-0101', safetyScore: 90, status: 'ON_TRIP' },
+  { id: 3, name: 'Driver 3', licenseNumber: 'LIC1002', licenseCategory: 'CDL-A', licenseExpiryDate: new Date(Date.now() + 1000*60*60*24*365), contactNumber: '555-0102', safetyScore: 92, status: 'OFF_DUTY' },
+  { id: 4, name: 'Driver 4', licenseNumber: 'LIC1003', licenseCategory: 'CDL-B', licenseExpiryDate: new Date(Date.now() - 1000*60*60*24*365), contactNumber: '555-0103', safetyScore: 60, status: 'SUSPENDED' }
 ];
 
-const mockTrips = [
-  { id: 1, source: 'City A', destination: 'City B', status: 'DRAFT' },
-  { id: 2, source: 'City C', destination: 'City D', status: 'DISPATCHED' },
-  { id: 3, source: 'City E', destination: 'City F', status: 'COMPLETED' },
-  { id: 4, source: 'City G', destination: 'City H', status: 'CANCELLED' }
+const mockTrips: Trip[] = [
+  { id: 1, source: 'City A', destination: 'City B', vehicleId: 1, driverId: 1, cargoWeight: 5000, plannedDistance: 500, status: 'DRAFT' },
+  { id: 2, source: 'City C', destination: 'City D', vehicleId: 2, driverId: 2, cargoWeight: 3000, plannedDistance: 300, status: 'DISPATCHED', dispatchedAt: new Date() },
+  { id: 3, source: 'City E', destination: 'City F', vehicleId: 3, driverId: 3, cargoWeight: 8000, plannedDistance: 800, actualDistance: 820, fuelConsumed: 160, revenue: 2400, status: 'COMPLETED', dispatchedAt: new Date(), completedAt: new Date() },
+  { id: 4, source: 'City G', destination: 'City H', vehicleId: 4, driverId: 4, cargoWeight: 4000, plannedDistance: 400, status: 'CANCELLED' }
 ];
 
-const mockMaintenance = [
-  { id: 1, vehicleId: 3, description: 'Engine repair', status: 'ACTIVE' },
-  { id: 2, vehicleId: 1, description: 'Oil change', status: 'CLOSED' }
+const mockMaintenance: MaintenanceLog[] = [
+  { id: 1, vehicleId: 3, description: 'Engine repair', cost: 1500, status: 'ACTIVE', startDate: new Date() },
+  { id: 2, vehicleId: 1, description: 'Oil change', cost: 200, status: 'CLOSED', startDate: new Date(), endDate: new Date() }
 ];
 
-const mockFuel = [{ id: 1, vehicleId: 2, liters: 50, cost: 150 }];
-const mockExpenses = [{ id: 1, type: 'TOLL', amount: 25 }];
+const mockFuel: FuelLog[] = [{ id: 1, vehicleId: 2, tripId: 2, liters: 50, cost: 150, date: new Date() }];
+const mockExpenses: Expense[] = [{ id: 1, vehicleId: 1, type: 'TOLL', amount: 25, description: 'Highway Toll', date: new Date() }];
 
-const mockDashboard = {
+const mockDashboard: DashboardKPIs = {
   activeVehicles: 15,
   driversOnTrip: 8,
   totalTripsToday: 12,
@@ -68,8 +69,8 @@ export const getExpenses = (req: Request, res: Response) => res.json(mockExpense
 export const createExpense = (req: Request, res: Response) => res.json({ id: 99, ...req.body });
 
 export const getDashboard = (req: Request, res: Response) => res.json(mockDashboard);
-export const getVehiclesReport = (req: Request, res: Response) => res.json([{ region: 'North', count: 10 }]);
-export const getFleetUtilization = (req: Request, res: Response) => res.json([{ month: 'Jan', rate: 80 }]);
+export const getVehiclesReport = (req: Request, res: Response) => res.json([{ region: 'North', count: 10 }] as VehicleReportRow[]);
+export const getFleetUtilization = (req: Request, res: Response) => res.json([{ month: 'Jan', rate: 80 }] as VehicleReportRow[]);
 export const exportVehiclesCSV = (req: Request, res: Response) => {
   res.header('Content-Type', 'text/csv');
   res.attachment('vehicles.csv');
