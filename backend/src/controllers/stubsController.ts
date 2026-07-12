@@ -1,76 +1,283 @@
 import { Request, Response } from 'express';
-import { Vehicle, Driver, Trip, MaintenanceLog, FuelLog, Expense, DashboardKPIs, VehicleReportRow } from '@shared/types';
+import { db } from '../config/dbService';
 
-const mockVehicles: Vehicle[] = [
-  { id: 1, registrationNumber: 'TRK-2000', name: 'Truck 1', type: 'Heavy Duty', maxLoadCapacity: 10000, odometer: 50000, acquisitionCost: 80000, status: 'AVAILABLE', region: 'North' },
-  { id: 2, registrationNumber: 'TRK-2001', name: 'Truck 2', type: 'Light Duty', maxLoadCapacity: 5000, odometer: 60000, acquisitionCost: 40000, status: 'ON_TRIP', region: 'South' },
-  { id: 3, registrationNumber: 'TRK-2002', name: 'Truck 3', type: 'Heavy Duty', maxLoadCapacity: 12000, odometer: 70000, acquisitionCost: 90000, status: 'IN_SHOP', region: 'East' },
-  { id: 4, registrationNumber: 'TRK-2003', name: 'Truck 4', type: 'Light Duty', maxLoadCapacity: 5500, odometer: 150000, acquisitionCost: 45000, status: 'RETIRED', region: 'West' }
-];
-
-const mockDrivers: Driver[] = [
-  { id: 1, name: 'Driver 1', licenseNumber: 'LIC1000', licenseCategory: 'CDL-A', licenseExpiryDate: new Date(Date.now() + 1000*60*60*24*365), contactNumber: '555-0100', safetyScore: 95, status: 'AVAILABLE' },
-  { id: 2, name: 'Driver 2', licenseNumber: 'LIC1001', licenseCategory: 'CDL-B', licenseExpiryDate: new Date(Date.now() + 1000*60*60*24*365), contactNumber: '555-0101', safetyScore: 90, status: 'ON_TRIP' },
-  { id: 3, name: 'Driver 3', licenseNumber: 'LIC1002', licenseCategory: 'CDL-A', licenseExpiryDate: new Date(Date.now() + 1000*60*60*24*365), contactNumber: '555-0102', safetyScore: 92, status: 'OFF_DUTY' },
-  { id: 4, name: 'Driver 4', licenseNumber: 'LIC1003', licenseCategory: 'CDL-B', licenseExpiryDate: new Date(Date.now() - 1000*60*60*24*365), contactNumber: '555-0103', safetyScore: 60, status: 'SUSPENDED' }
-];
-
-const mockTrips: Trip[] = [
-  { id: 1, source: 'City A', destination: 'City B', vehicleId: 1, driverId: 1, cargoWeight: 5000, plannedDistance: 500, status: 'DRAFT' },
-  { id: 2, source: 'City C', destination: 'City D', vehicleId: 2, driverId: 2, cargoWeight: 3000, plannedDistance: 300, status: 'DISPATCHED', dispatchedAt: new Date() },
-  { id: 3, source: 'City E', destination: 'City F', vehicleId: 3, driverId: 3, cargoWeight: 8000, plannedDistance: 800, actualDistance: 820, fuelConsumed: 160, revenue: 2400, status: 'COMPLETED', dispatchedAt: new Date(), completedAt: new Date() },
-  { id: 4, source: 'City G', destination: 'City H', vehicleId: 4, driverId: 4, cargoWeight: 4000, plannedDistance: 400, status: 'CANCELLED' }
-];
-
-const mockMaintenance: MaintenanceLog[] = [
-  { id: 1, vehicleId: 3, description: 'Engine repair', cost: 1500, status: 'ACTIVE', startDate: new Date() },
-  { id: 2, vehicleId: 1, description: 'Oil change', cost: 200, status: 'CLOSED', startDate: new Date(), endDate: new Date() }
-];
-
-const mockFuel: FuelLog[] = [{ id: 1, vehicleId: 2, tripId: 2, liters: 50, cost: 150, date: new Date() }];
-const mockExpenses: Expense[] = [{ id: 1, vehicleId: 1, type: 'TOLL', amount: 25, description: 'Highway Toll', date: new Date() }];
-
-const mockDashboard: DashboardKPIs = {
-  activeVehicles: 15,
-  driversOnTrip: 8,
-  totalTripsToday: 12,
-  maintenanceAlerts: 3,
-  fuelCostToday: 450,
-  revenueToday: 2500,
-  utilizationRate: 75
+// Vehicles
+export const getVehicles = (req: Request, res: Response) => {
+  res.json(db.getVehicles());
 };
 
-export const getVehicles = (req: Request, res: Response) => res.json(mockVehicles);
-export const createVehicle = (req: Request, res: Response) => res.json({ id: 99, ...req.body });
-export const updateVehicle = (req: Request, res: Response) => res.json({ id: req.params.id, ...req.body });
-export const deleteVehicle = (req: Request, res: Response) => { res.status(204).send(); };
+export const createVehicle = (req: Request, res: Response) => {
+  const newVehicle = db.insertVehicle({
+    registrationNumber: req.body.registrationNumber,
+    name: req.body.name,
+    type: req.body.type || 'Light Duty',
+    maxLoadCapacity: Number(req.body.maxLoadCapacity) || 5000,
+    odometer: Number(req.body.odometer) || 0,
+    acquisitionCost: Number(req.body.acquisitionCost) || 30000,
+    status: req.body.status || 'AVAILABLE',
+    region: req.body.region || 'North'
+  });
+  res.json(newVehicle);
+};
 
-export const getDrivers = (req: Request, res: Response) => res.json(mockDrivers);
-export const getExpiringLicenses = (req: Request, res: Response) => res.json(mockDrivers.filter(d => new Date(d.licenseExpiryDate) < new Date()));
-export const createDriver = (req: Request, res: Response) => res.json({ id: 99, ...req.body });
-export const updateDriver = (req: Request, res: Response) => res.json({ id: req.params.id, ...req.body });
-export const deleteDriver = (req: Request, res: Response) => { res.status(204).send(); };
+export const updateVehicle = (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const updated = db.updateVehicle(id, req.body);
+  if (!updated) return res.status(404).json({ message: 'Vehicle not found' });
+  res.json(updated);
+};
 
-export const getMaintenance = (req: Request, res: Response) => res.json(mockMaintenance);
-export const createMaintenance = (req: Request, res: Response) => res.json({ id: 99, ...req.body });
-export const closeMaintenance = (req: Request, res: Response) => res.json({ id: req.params.id, status: 'CLOSED' });
+export const deleteVehicle = (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const deleted = db.deleteVehicle(id);
+  res.status(deleted ? 204 : 404).send();
+};
 
-export const getTrips = (req: Request, res: Response) => res.json(mockTrips);
-export const createTrip = (req: Request, res: Response) => res.json({ id: 99, ...req.body });
-export const dispatchTrip = (req: Request, res: Response) => res.json({ id: req.params.id, status: 'DISPATCHED' });
-export const completeTrip = (req: Request, res: Response) => res.json({ id: req.params.id, status: 'COMPLETED' });
-export const cancelTrip = (req: Request, res: Response) => res.json({ id: req.params.id, status: 'CANCELLED' });
+// Drivers
+export const getDrivers = (req: Request, res: Response) => {
+  res.json(db.getDrivers());
+};
 
-export const getFuelLogs = (req: Request, res: Response) => res.json(mockFuel);
-export const createFuelLog = (req: Request, res: Response) => res.json({ id: 99, ...req.body });
-export const getExpenses = (req: Request, res: Response) => res.json(mockExpenses);
-export const createExpense = (req: Request, res: Response) => res.json({ id: 99, ...req.body });
+export const getExpiringLicenses = (req: Request, res: Response) => {
+  const now = new Date();
+  const expiring = db.getDrivers().filter(d => new Date(d.licenseExpiryDate) < now);
+  res.json(expiring);
+};
 
-export const getDashboard = (req: Request, res: Response) => res.json(mockDashboard);
-export const getVehiclesReport = (req: Request, res: Response) => res.json([{ region: 'North', count: 10 }] as VehicleReportRow[]);
-export const getFleetUtilization = (req: Request, res: Response) => res.json([{ month: 'Jan', rate: 80 }] as VehicleReportRow[]);
+export const createDriver = (req: Request, res: Response) => {
+  const newDriver = db.insertDriver({
+    name: req.body.name,
+    licenseNumber: req.body.licenseNumber,
+    licenseCategory: req.body.licenseCategory || 'CDL-A',
+    licenseExpiryDate: req.body.licenseExpiryDate || new Date(Date.now() + 1000*60*60*24*365).toISOString(),
+    contactNumber: req.body.contactNumber || '555-0100',
+    safetyScore: Number(req.body.safetyScore) || 100,
+    status: req.body.status || 'AVAILABLE'
+  });
+  res.json(newDriver);
+};
+
+export const updateDriver = (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const updated = db.updateDriver(id, req.body);
+  if (!updated) return res.status(404).json({ message: 'Driver not found' });
+  res.json(updated);
+};
+
+export const deleteDriver = (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const deleted = db.deleteDriver(id);
+  res.status(deleted ? 204 : 404).send();
+};
+
+// Maintenance
+export const getMaintenance = (req: Request, res: Response) => {
+  res.json(db.getMaintenanceLogs());
+};
+
+export const createMaintenance = (req: Request, res: Response) => {
+  const vehicleId = Number(req.body.vehicleId);
+  const cost = Number(req.body.cost) || null;
+  const newLog = db.insertMaintenanceLog({
+    vehicleId,
+    description: req.body.description || 'Routine Check',
+    cost,
+    status: 'ACTIVE',
+    startDate: req.body.startDate || new Date().toISOString(),
+    endDate: req.body.endDate || null
+  });
+  
+  // Update vehicle status
+  db.updateVehicle(vehicleId, { status: 'IN_SHOP' });
+  
+  res.json(newLog);
+};
+
+export const closeMaintenance = (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const cost = req.body.cost !== undefined ? Number(req.body.cost) : undefined;
+  const updated = db.updateMaintenanceLog(id, {
+    status: 'CLOSED',
+    endDate: new Date().toISOString(),
+    ...(cost !== undefined ? { cost } : {})
+  });
+  if (!updated) return res.status(404).json({ message: 'Maintenance log not found' });
+
+  // Update vehicle status back to AVAILABLE
+  db.updateVehicle(updated.vehicleId, { status: 'AVAILABLE' });
+
+  res.json(updated);
+};
+
+// Trips
+export const getTrips = (req: Request, res: Response) => {
+  res.json(db.getTrips());
+};
+
+export const createTrip = (req: Request, res: Response) => {
+  const vehicleId = Number(req.body.vehicleId);
+  const driverId = Number(req.body.driverId);
+  const newTrip = db.insertTrip({
+    source: req.body.source,
+    destination: req.body.destination,
+    vehicleId,
+    driverId,
+    cargoWeight: Number(req.body.cargoWeight) || 0,
+    plannedDistance: Number(req.body.plannedDistance) || 0,
+    status: 'DRAFT'
+  });
+  res.json(newTrip);
+};
+
+export const dispatchTrip = (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const trip = db.getTrips().find(t => t.id === id);
+  if (!trip) return res.status(404).json({ message: 'Trip not found' });
+
+  const updated = db.updateTrip(id, {
+    status: 'DISPATCHED',
+    dispatchedAt: new Date().toISOString()
+  });
+
+  // Update vehicle and driver status
+  db.updateVehicle(trip.vehicleId, { status: 'ON_TRIP' });
+  db.updateDriver(trip.driverId, { status: 'ON_TRIP' });
+
+  res.json(updated);
+};
+
+export const completeTrip = (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const trip = db.getTrips().find(t => t.id === id);
+  if (!trip) return res.status(404).json({ message: 'Trip not found' });
+
+  const actualDistance = Number(req.body.actualDistance) || trip.plannedDistance;
+  const fuelConsumed = Number(req.body.fuelConsumed) || Math.round(actualDistance * 0.2);
+  const revenue = Number(req.body.revenue) || Math.round(actualDistance * 3.0);
+
+  const updated = db.updateTrip(id, {
+    status: 'COMPLETED',
+    completedAt: new Date().toISOString(),
+    actualDistance,
+    fuelConsumed,
+    revenue
+  });
+
+  // Update vehicle and driver status back to AVAILABLE
+  db.updateVehicle(trip.vehicleId, {
+    status: 'AVAILABLE',
+    odometer: db.getVehicles().find(v => v.id === trip.vehicleId)!.odometer + actualDistance
+  });
+  db.updateDriver(trip.driverId, { status: 'AVAILABLE' });
+
+  // Automatically record fuel log
+  const fuelCost = Math.round(fuelConsumed * 3.0); // e.g. $3 per liter
+  db.insertFuelLog({
+    vehicleId: trip.vehicleId,
+    tripId: trip.id,
+    liters: fuelConsumed,
+    cost: fuelCost,
+    date: new Date().toISOString()
+  });
+
+  res.json(updated);
+};
+
+export const cancelTrip = (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const trip = db.getTrips().find(t => t.id === id);
+  if (!trip) return res.status(404).json({ message: 'Trip not found' });
+
+  const updated = db.updateTrip(id, { status: 'CANCELLED' });
+
+  // Update vehicle and driver status back to AVAILABLE if they were dispatched
+  if (trip.status === 'DISPATCHED') {
+    db.updateVehicle(trip.vehicleId, { status: 'AVAILABLE' });
+    db.updateDriver(trip.driverId, { status: 'AVAILABLE' });
+  }
+
+  res.json(updated);
+};
+
+// Fuel & Expenses
+export const getFuelLogs = (req: Request, res: Response) => {
+  res.json(db.getFuelLogs());
+};
+
+export const createFuelLog = (req: Request, res: Response) => {
+  const newLog = db.insertFuelLog({
+    vehicleId: Number(req.body.vehicleId),
+    tripId: req.body.tripId ? Number(req.body.tripId) : null,
+    liters: Number(req.body.liters) || 0,
+    cost: Number(req.body.cost) || 0,
+    date: req.body.date || new Date().toISOString()
+  });
+  res.json(newLog);
+};
+
+export const getExpenses = (req: Request, res: Response) => {
+  res.json(db.getExpenses());
+};
+
+export const createExpense = (req: Request, res: Response) => {
+  const newExpense = db.insertExpense({
+    vehicleId: Number(req.body.vehicleId),
+    type: req.body.type || 'OTHER',
+    amount: Number(req.body.amount) || 0,
+    description: req.body.description || '',
+    date: req.body.date || new Date().toISOString()
+  });
+  res.json(newExpense);
+};
+
+// Legacy stubs for dashboard/reports (mostly covered by native controllers now)
+export const getDashboard = (req: Request, res: Response) => {
+  const vehicles = db.getVehicles();
+  const trips = db.getTrips();
+  const fuelLogs = db.getFuelLogs();
+
+  const totalFuelCost = fuelLogs.reduce((sum, f) => sum + f.cost, 0);
+  const totalRevenue = trips.filter(t => t.status === 'COMPLETED').reduce((sum, t) => sum + (t.revenue || 0), 0);
+
+  res.json({
+    activeVehicles: vehicles.filter(v => v.status !== 'RETIRED').length,
+    driversOnTrip: db.getDrivers().filter(d => d.status === 'ON_TRIP').length,
+    totalTripsToday: trips.length,
+    maintenanceAlerts: db.getMaintenanceLogs().filter(m => m.status === 'ACTIVE').length,
+    fuelCostToday: Math.round(totalFuelCost / 30), // estimation
+    revenueToday: Math.round(totalRevenue / 30),
+    utilizationRate: 80
+  });
+};
+
+export const getVehiclesReport = (req: Request, res: Response) => {
+  const vehicles = db.getVehicles();
+  const regionCounts: Record<string, number> = {};
+  for (const v of vehicles) {
+    regionCounts[v.region] = (regionCounts[v.region] || 0) + 1;
+  }
+  const report = Object.entries(regionCounts).map(([region, count]) => ({
+    region,
+    count
+  }));
+  res.json(report);
+};
+
+export const getFleetUtilization = (req: Request, res: Response) => {
+  res.json([
+    { month: 'Jan', rate: 75 },
+    { month: 'Feb', rate: 78 },
+    { month: 'Mar', rate: 82 },
+    { month: 'Apr', rate: 80 },
+    { month: 'May', rate: 85 },
+    { month: 'Jun', rate: 81 }
+  ]);
+};
+
 export const exportVehiclesCSV = (req: Request, res: Response) => {
+  const vehicles = db.getVehicles();
+  const csv = ['id,registrationNumber,name,type,status,region', ...vehicles.map(v => `${v.id},"${v.registrationNumber}","${v.name}","${v.type}",${v.status},"${v.region}"`)].join('\n');
   res.header('Content-Type', 'text/csv');
-  res.attachment('vehicles.csv');
-  res.send('id,registrationNumber,status\n1,TRK-2000,AVAILABLE\n2,TRK-2001,ON_TRIP');
+  res.attachment('vehicles-report.csv');
+  res.send(csv);
 };

@@ -1,29 +1,21 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { db } from '../config/dbService';
 
 export const getDashboardKPIs = async (req: Request, res: Response) => {
   try {
-    const [
-      activeVehicles,
-      availableVehicles,
-      inMaintenance,
-      activeTrips,
-      pendingTrips,
-      driversOnDuty,
-      totalNonRetired,
-      onTripVehicles,
-    ] = await Promise.all([
-      prisma.vehicle.count({ where: { status: { not: 'RETIRED' } } }),
-      prisma.vehicle.count({ where: { status: 'AVAILABLE' } }),
-      prisma.vehicle.count({ where: { status: 'IN_SHOP' } }),
-      prisma.trip.count({ where: { status: 'DISPATCHED' } }),
-      prisma.trip.count({ where: { status: 'DRAFT' } }),
-      prisma.driver.count({ where: { status: 'ON_TRIP' } }),
-      prisma.vehicle.count({ where: { status: { not: 'RETIRED' } } }),
-      prisma.vehicle.count({ where: { status: 'ON_TRIP' } }),
-    ]);
+    const vehicles = db.getVehicles();
+    const trips = db.getTrips();
+    const drivers = db.getDrivers();
+
+    const activeVehicles = vehicles.filter(v => v.status !== 'RETIRED').length;
+    const availableVehicles = vehicles.filter(v => v.status === 'AVAILABLE').length;
+    const inMaintenance = vehicles.filter(v => v.status === 'IN_SHOP').length;
+    const activeTrips = trips.filter(t => t.status === 'DISPATCHED').length;
+    const pendingTrips = trips.filter(t => t.status === 'DRAFT').length;
+    const driversOnDuty = drivers.filter(d => d.status === 'ON_TRIP').length;
+    
+    const totalNonRetired = activeVehicles;
+    const onTripVehicles = vehicles.filter(v => v.status === 'ON_TRIP').length;
 
     const fleetUtilizationPct = totalNonRetired > 0
       ? Math.round((onTripVehicles / totalNonRetired) * 1000) / 10
@@ -37,8 +29,8 @@ export const getDashboardKPIs = async (req: Request, res: Response) => {
       pendingTrips,
       driversOnDuty,
       fleetUtilizationPct,
-      atRiskTrips: 0,       // Placeholder — wired when disruption recovery is built
-      recoveredTrips: 0,    // Placeholder — wired when disruption recovery is built
+      atRiskTrips: 0,       // Placeholder
+      recoveredTrips: 0,    // Placeholder
     });
   } catch (error) {
     console.error('Dashboard KPI error:', error);
@@ -48,27 +40,30 @@ export const getDashboardKPIs = async (req: Request, res: Response) => {
 
 export const getRecentTrips = async (req: Request, res: Response) => {
   try {
-    const trips = await prisma.trip.findMany({
-      take: 6,
-      orderBy: { id: 'desc' },
-      include: {
-        vehicle: { select: { name: true, registrationNumber: true } },
-        driver: { select: { name: true } },
-      },
-    });
+    const trips = db.getTrips();
+    const vehicles = db.getVehicles();
+    const drivers = db.getDrivers();
 
-    const formatted = trips.map((t) => ({
-      id: t.id,
-      tripCode: `TR${String(t.id).padStart(3, '0')}`,
-      vehicle: t.vehicle.name,
-      vehicleReg: t.vehicle.registrationNumber,
-      driver: t.driver.name,
-      source: t.source,
-      destination: t.destination,
-      status: t.status,
-      dispatchedAt: t.dispatchedAt,
-      completedAt: t.completedAt,
-    }));
+    // Sort by id descending, take 6
+    const sortedTrips = [...trips].sort((a, b) => b.id - a.id).slice(0, 6);
+
+    const formatted = sortedTrips.map((t) => {
+      const v = vehicles.find(veh => veh.id === t.vehicleId) || { name: 'Unknown', registrationNumber: 'N/A' };
+      const d = drivers.find(drv => drv.id === t.driverId) || { name: 'Unknown' };
+
+      return {
+        id: t.id,
+        tripCode: `TR${String(t.id).padStart(3, '0')}`,
+        vehicle: v.name,
+        vehicleReg: v.registrationNumber,
+        driver: d.name,
+        source: t.source,
+        destination: t.destination,
+        status: t.status,
+        dispatchedAt: t.dispatchedAt,
+        completedAt: t.completedAt,
+      };
+    });
 
     res.json(formatted);
   } catch (error) {
@@ -79,14 +74,22 @@ export const getRecentTrips = async (req: Request, res: Response) => {
 
 export const getVehicleStatusDistribution = async (req: Request, res: Response) => {
   try {
-    const statuses = await prisma.vehicle.groupBy({
-      by: ['status'],
-      _count: { id: true },
-    });
+    const vehicles = db.getVehicles();
+    const statusCounts: Record<string, number> = {};
+    
+    // Initialize standard statuses to make sure they are present
+    statusCounts['AVAILABLE'] = 0;
+    statusCounts['ON_TRIP'] = 0;
+    statusCounts['IN_SHOP'] = 0;
+    statusCounts['RETIRED'] = 0;
 
-    const distribution = statuses.map((s) => ({
-      status: s.status,
-      count: s._count.id,
+    for (const v of vehicles) {
+      statusCounts[v.status] = (statusCounts[v.status] || 0) + 1;
+    }
+
+    const distribution = Object.entries(statusCounts).map(([status, count]) => ({
+      status,
+      count,
     }));
 
     res.json(distribution);

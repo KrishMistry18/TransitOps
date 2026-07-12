@@ -1,22 +1,22 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { db } from '../config/dbService';
 
 export const getAnalyticsKPIs = async (req: Request, res: Response) => {
   try {
+    const vehicles = db.getVehicles();
+    const trips = db.getTrips();
+    const fuelLogs = db.getFuelLogs();
+    const maintenanceLogs = db.getMaintenanceLogs();
+
     // Fleet Utilization
-    const totalNonRetired = await prisma.vehicle.count({ where: { status: { not: 'RETIRED' } } });
-    const onTripVehicles = await prisma.vehicle.count({ where: { status: 'ON_TRIP' } });
+    const totalNonRetired = vehicles.filter(v => v.status !== 'RETIRED').length;
+    const onTripVehicles = vehicles.filter(v => v.status === 'ON_TRIP').length;
     const fleetUtilization = totalNonRetired > 0
       ? Math.round((onTripVehicles / totalNonRetired) * 1000) / 10
       : 0.0;
 
     // Fuel Efficiency — fleet average: total distance / total liters
-    const completedTrips = await prisma.trip.findMany({
-      where: { status: 'COMPLETED', actualDistance: { not: null }, fuelConsumed: { gt: 0 } },
-      select: { actualDistance: true, fuelConsumed: true },
-    });
+    const completedTrips = trips.filter(t => t.status === 'COMPLETED' && t.actualDistance && t.actualDistance > 0 && t.fuelConsumed && t.fuelConsumed > 0);
 
     let totalDistance = 0;
     let totalFuel = 0;
@@ -29,33 +29,23 @@ export const getAnalyticsKPIs = async (req: Request, res: Response) => {
       : null; // N/A
 
     // Operational Cost — sum of fuel + maintenance costs
-    const fuelCostAgg = await prisma.fuelLog.aggregate({ _sum: { cost: true } });
-    const maintenanceCostAgg = await prisma.maintenanceLog.aggregate({ _sum: { cost: true } });
-    const totalFuelCost = fuelCostAgg._sum.cost || 0;
-    const totalMaintenanceCost = maintenanceCostAgg._sum.cost || 0;
+    const totalFuelCost = fuelLogs.reduce((sum, f) => sum + f.cost, 0);
+    const totalMaintenanceCost = maintenanceLogs.reduce((sum, m) => sum + (m.cost || 0), 0);
     const operationalCost = totalFuelCost + totalMaintenanceCost;
 
     // Vehicle ROI — fleet average: (revenue - (maintenance + fuel)) / acquisitionCost
-    const vehicles = await prisma.vehicle.findMany({
-      where: { status: { not: 'RETIRED' }, acquisitionCost: { gt: 0 } },
-      select: {
-        id: true,
-        acquisitionCost: true,
-        trips: {
-          where: { status: 'COMPLETED' },
-          select: { revenue: true },
-        },
-        fuelLogs: { select: { cost: true } },
-        maintenanceLogs: { select: { cost: true } },
-      },
-    });
+    const activeVehiclesList = vehicles.filter(v => v.status !== 'RETIRED' && v.acquisitionCost && v.acquisitionCost > 0);
 
     let totalROI = 0;
     let roiCount = 0;
-    for (const v of vehicles) {
-      const revenue = v.trips.reduce((sum, t) => sum + (t.revenue || 0), 0);
-      const fuel = v.fuelLogs.reduce((sum, f) => sum + f.cost, 0);
-      const maint = v.maintenanceLogs.reduce((sum, m) => sum + (m.cost || 0), 0);
+    for (const v of activeVehiclesList) {
+      const vTrips = trips.filter(t => t.vehicleId === v.id && t.status === 'COMPLETED');
+      const vFuelLogs = fuelLogs.filter(f => f.vehicleId === v.id);
+      const vMaintLogs = maintenanceLogs.filter(m => m.vehicleId === v.id);
+
+      const revenue = vTrips.reduce((sum, t) => sum + (t.revenue || 0), 0);
+      const fuel = vFuelLogs.reduce((sum, f) => sum + f.cost, 0);
+      const maint = vMaintLogs.reduce((sum, m) => sum + (m.cost || 0), 0);
       const roi = (revenue - (maint + fuel)) / v.acquisitionCost;
       totalROI += roi;
       roiCount++;
@@ -78,17 +68,15 @@ export const getAnalyticsKPIs = async (req: Request, res: Response) => {
 
 export const getMonthlyRevenue = async (req: Request, res: Response) => {
   try {
-    const trips = await prisma.trip.findMany({
-      where: { status: 'COMPLETED', revenue: { not: null } },
-      select: { completedAt: true, revenue: true },
-      orderBy: { completedAt: 'asc' },
-    });
+    const trips = db.getTrips().filter(t => t.status === 'COMPLETED' && t.revenue !== null && t.completedAt);
+    
+    // Sort completed trips by completedAt ascending
+    trips.sort((a, b) => new Date(a.completedAt!).getTime() - new Date(b.completedAt!).getTime());
 
     const monthMap: Record<string, number> = {};
     for (const trip of trips) {
       if (!trip.completedAt) continue;
       const d = new Date(trip.completedAt);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       const label = d.toLocaleString('default', { month: 'short', year: 'numeric' });
       monthMap[label] = (monthMap[label] || 0) + (trip.revenue || 0);
     }
@@ -113,20 +101,16 @@ export const getMonthlyRevenue = async (req: Request, res: Response) => {
 
 export const getTopCostliestVehicles = async (req: Request, res: Response) => {
   try {
-    const vehicles = await prisma.vehicle.findMany({
-      where: { status: { not: 'RETIRED' } },
-      select: {
-        id: true,
-        registrationNumber: true,
-        name: true,
-        fuelLogs: { select: { cost: true } },
-        maintenanceLogs: { select: { cost: true } },
-      },
-    });
+    const vehicles = db.getVehicles().filter(v => v.status !== 'RETIRED');
+    const fuelLogs = db.getFuelLogs();
+    const maintenanceLogs = db.getMaintenanceLogs();
 
     const ranked = vehicles.map((v) => {
-      const fuelCost = v.fuelLogs.reduce((sum, f) => sum + f.cost, 0);
-      const maintenanceCost = v.maintenanceLogs.reduce((sum, m) => sum + (m.cost || 0), 0);
+      const vFuel = fuelLogs.filter(f => f.vehicleId === v.id);
+      const vMaint = maintenanceLogs.filter(m => m.vehicleId === v.id);
+
+      const fuelCost = vFuel.reduce((sum, f) => sum + f.cost, 0);
+      const maintenanceCost = vMaint.reduce((sum, m) => sum + (m.cost || 0), 0);
       return {
         id: v.id,
         registrationNumber: v.registrationNumber,
@@ -147,21 +131,22 @@ export const getTopCostliestVehicles = async (req: Request, res: Response) => {
 
 export const exportCSV = async (req: Request, res: Response) => {
   try {
-    const vehicles = await prisma.vehicle.findMany({
-      include: {
-        trips: { where: { status: 'COMPLETED' }, select: { revenue: true, actualDistance: true } },
-        fuelLogs: { select: { cost: true, liters: true } },
-        maintenanceLogs: { select: { cost: true } },
-      },
-    });
+    const vehicles = db.getVehicles();
+    const trips = db.getTrips();
+    const fuelLogs = db.getFuelLogs();
+    const maintenanceLogs = db.getMaintenanceLogs();
 
     const header = 'ID,Registration,Name,Type,Status,Region,Odometer,Acquisition Cost,Total Revenue,Fuel Cost,Maintenance Cost,Operational Cost,Fuel Efficiency (km/l),ROI (%)';
     const rows = vehicles.map((v) => {
-      const revenue = v.trips.reduce((s, t) => s + (t.revenue || 0), 0);
-      const totalDist = v.trips.reduce((s, t) => s + (t.actualDistance || 0), 0);
-      const fuelCost = v.fuelLogs.reduce((s, f) => s + f.cost, 0);
-      const totalLiters = v.fuelLogs.reduce((s, f) => s + f.liters, 0);
-      const maintCost = v.maintenanceLogs.reduce((s, m) => s + (m.cost || 0), 0);
+      const vTrips = trips.filter(t => t.vehicleId === v.id && t.status === 'COMPLETED');
+      const vFuel = fuelLogs.filter(f => f.vehicleId === v.id);
+      const vMaint = maintenanceLogs.filter(m => m.vehicleId === v.id);
+
+      const revenue = vTrips.reduce((s, t) => s + (t.revenue || 0), 0);
+      const totalDist = vTrips.reduce((s, t) => s + (t.actualDistance || 0), 0);
+      const fuelCost = vFuel.reduce((s, f) => s + f.cost, 0);
+      const totalLiters = vFuel.reduce((s, f) => s + f.liters, 0);
+      const maintCost = vMaint.reduce((s, m) => s + (m.cost || 0), 0);
       const opCost = fuelCost + maintCost;
       const fuelEff = totalLiters > 0 ? (totalDist / totalLiters).toFixed(1) : 'N/A';
       const roi = v.acquisitionCost > 0

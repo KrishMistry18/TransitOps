@@ -1,18 +1,11 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { db } from '../config/dbService';
 
 export const getAvailableDrivers = async (req: Request, res: Response) => {
   try {
-    const drivers = await prisma.driver.findMany({
-      where: {
-        status: 'AVAILABLE',
-        licenseExpiryDate: {
-          gt: new Date()
-        }
-      }
-    });
+    const drivers = db.getDrivers().filter(d => 
+      d.status === 'AVAILABLE' && new Date(d.licenseExpiryDate) > new Date()
+    );
     res.json(drivers);
   } catch (error: any) {
     res.status(500).json({ error: 'Failed to fetch available drivers' });
