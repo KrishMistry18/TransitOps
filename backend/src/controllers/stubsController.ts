@@ -40,31 +40,53 @@ const mockDashboard: DashboardKPIs = {
   utilizationRate: 75
 };
 
+// STUB — replace with real Mongoose queries
 export const getVehicles = (req: Request, res: Response) => res.json(mockVehicles);
+// STUB — replace with real Mongoose queries
 export const createVehicle = (req: Request, res: Response) => res.json({ id: "99", ...req.body });
+// STUB — replace with real Mongoose queries
 export const updateVehicle = (req: Request, res: Response) => res.json({ id: req.params.id, ...req.body });
+// STUB — replace with real Mongoose queries
 export const deleteVehicle = (req: Request, res: Response) => { res.status(204).send(); };
 
+// STUB — replace with real Mongoose queries
 export const getDrivers = (req: Request, res: Response) => res.json(mockDrivers);
+// STUB — replace with real Mongoose queries
 export const getExpiringLicenses = (req: Request, res: Response) => res.json(mockDrivers.filter(d => new Date(d.licenseExpiryDate) < new Date()));
+// STUB — replace with real Mongoose queries
 export const createDriver = (req: Request, res: Response) => res.json({ id: "99", ...req.body });
+// STUB — replace with real Mongoose queries
 export const updateDriver = (req: Request, res: Response) => res.json({ id: req.params.id, ...req.body });
+// STUB — replace with real Mongoose queries
 export const deleteDriver = (req: Request, res: Response) => { res.status(204).send(); };
 
+// STUB — replace with real Mongoose queries
 export const getTrips = (req: Request, res: Response) => res.json(mockTrips);
+// STUB — replace with real Mongoose queries
 export const createTrip = (req: Request, res: Response) => res.json({ id: "99", ...req.body });
+// STUB — replace with real Mongoose queries
 export const dispatchTrip = (req: Request, res: Response) => res.json({ id: req.params.id, status: 'DISPATCHED' });
+// STUB — replace with real Mongoose queries
 export const completeTrip = (req: Request, res: Response) => res.json({ id: req.params.id, status: 'COMPLETED' });
+// STUB — replace with real Mongoose queries
 export const cancelTrip = (req: Request, res: Response) => res.json({ id: req.params.id, status: 'CANCELLED' });
 
+// STUB — replace with real Mongoose queries
 export const getFuelLogs = (req: Request, res: Response) => res.json(mockFuel);
+// STUB — replace with real Mongoose queries
 export const createFuelLog = (req: Request, res: Response) => res.json({ id: "99", ...req.body });
+// STUB — replace with real Mongoose queries
 export const getExpenses = (req: Request, res: Response) => res.json(mockExpenses);
+// STUB — replace with real Mongoose queries
 export const createExpense = (req: Request, res: Response) => res.json({ id: "99", ...req.body });
 
+// STUB — replace with real Mongoose queries
 export const getDashboard = (req: Request, res: Response) => res.json(mockDashboard);
+// STUB — replace with real Mongoose queries
 export const getVehiclesReport = (req: Request, res: Response) => res.json([{ region: 'North', count: 10 }] as VehicleReportRow[]);
+// STUB — replace with real Mongoose queries
 export const getFleetUtilization = (req: Request, res: Response) => res.json([{ month: 'Jan', rate: 80 }] as VehicleReportRow[]);
+// STUB — replace with real Mongoose queries
 export const exportVehiclesCSV = (req: Request, res: Response) => {
   res.header('Content-Type', 'text/csv');
   res.attachment('vehicles.csv');

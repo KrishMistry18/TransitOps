@@ -9,7 +9,7 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "dev": "tsx watch src/index.ts",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx src/scripts/seed.ts"
   },
   "keywords": [],
   "author": "",

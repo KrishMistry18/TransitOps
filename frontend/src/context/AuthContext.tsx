@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '@shared/types';
+import api from '../lib/api';
 
 export interface AuthContextType {
   user: User | null;
@@ -23,20 +24,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     if (token) {
       localStorage.setItem('token', token);
-      fetch('http://localhost:5000/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.message) throw new Error(data.message);
-        setUser(data);
-      })
-      .catch(() => {
-        setToken(null);
-        setUser(null);
-        localStorage.removeItem('token');
-      })
-      .finally(() => setLoading(false));
+      api.get('/auth/me')
+        .then(res => {
+          setUser(res.data);
+        })
+        .catch(() => {
+          setToken(null);
+          setUser(null);
+          localStorage.removeItem('token');
+        })
+        .finally(() => setLoading(false));
     } else {
       localStorage.removeItem('token');
       setUser(null);
@@ -45,15 +42,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [token]);
 
   const login = async (email: string, password: string) => {
-    const res = await fetch('http://localhost:5000/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Login failed');
-    setToken(data.token);
-    setUser(data.user);
+    const res = await api.post('/auth/login', { email, password });
+    const { token: newToken, user: newUser } = res.data;
+    setToken(newToken);
+    setUser(newUser);
   };
 
   const logout = () => {

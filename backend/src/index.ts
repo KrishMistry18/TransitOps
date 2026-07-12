@@ -2,8 +2,8 @@ import './env';
 import './models';
 import express from 'express';
 import cors from 'cors';
-import authRoutes from './routes/authRoutes';
-import settingsRoutes from './routes/settingsRoutes';
+import authRoutes from './routes/auth.routes';
+import settingsRoutes from './routes/settings.routes';
 import stubsRoutes from './routes/stubsRoutes';
 
 const app = express();

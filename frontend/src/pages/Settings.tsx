@@ -1,42 +1,36 @@
-﻿import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { PermissionsMatrix, FeaturePermissions } from '@shared/types';
 import { Card, Input, Select, Button, Table, TableHeader, TableRow, TableHead, TableBody, TableCell, StatusChip } from '../components/ui';
+import api from '../lib/api';
 
 export default function Settings() {
-  const { token, user } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const [settings, setSettings] = useState({ depotName: '', currency: '', distanceUnit: '' });
   const [permissions, setPermissions] = useState<PermissionsMatrix | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/settings', { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => res.json())
-      .then(data => setSettings(data));
+    api.get('/settings')
+      .then(res => setSettings(res.data))
+      .catch(() => setMessage('Error loading settings'));
 
-    fetch('http://localhost:5000/api/settings/permissions', { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => res.json())
-      .then(data => setPermissions(data));
-  }, [token]);
+    api.get('/settings/permissions')
+      .then(res => setPermissions(res.data))
+      .catch(() => setMessage('Error loading permissions'));
+  }, []);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setMessage('');
     try {
-      const res = await fetch('http://localhost:5000/api/settings', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(settings)
-      });
-      if (res.ok) setMessage('Settings saved successfully');
-      else setMessage('Error saving settings or insufficient permissions');
+      const res = await api.put('/settings', settings);
+      setSettings(res.data);
+      setMessage('Settings saved successfully');
     } catch (err) {
-      setMessage('Network error');
+      setMessage('Error saving settings or insufficient permissions');
     } finally {
       setSaving(false);
     }
@@ -74,9 +68,10 @@ export default function Settings() {
                 onChange={e => setSettings({ ...settings, currency: e.target.value })}
                 disabled={user?.role !== 'FLEET_MANAGER'}
               >
+                <option value="INR">INR (₹)</option>
                 <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (â‚¬)</option>
-                <option value="GBP">GBP (Â£)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
               </Select>
             </div>
             <div>
@@ -110,9 +105,9 @@ export default function Settings() {
               <TableRow>
                 <TableHead>Feature / Module</TableHead>
                 {Object.keys(permissions).map(role => (
-                  <TableHead key={role} className="text-center">
-                    {role.replace('_', ' ')}
-                  </TableHead>
+                   <TableHead key={role} className="text-center">
+                     {role.replace('_', ' ')}
+                   </TableHead>
                 ))}
               </TableRow>
             </TableHeader>

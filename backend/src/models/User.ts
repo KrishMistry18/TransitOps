@@ -1,6 +1,8 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { Role } from '@shared/types';
 
+import bcrypt from 'bcryptjs';
+
 export interface IUser extends Document {
   email: string;
   passwordHash: string;
@@ -10,6 +12,7 @@ export interface IUser extends Document {
   lockedUntil?: Date;
   createdAt: Date;
   updatedAt: Date;
+  comparePassword(candidate: string): Promise<boolean>;
 }
 
 const UserSchema = new Schema({
@@ -21,7 +24,17 @@ const UserSchema = new Schema({
   lockedUntil: { type: Date },
 }, { timestamps: true });
 
-// pre-save hook placeholder for password hashing (implemented in step 3, not here)
+// Hash password with bcrypt (12 rounds) if passwordHash field was modified
+UserSchema.pre<IUser>('save', async function() {
+  if (!this.isModified('passwordHash')) return;
+  const salt = await bcrypt.genSalt(12);
+  this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
+});
+
+// Instance method to compare password
+UserSchema.methods.comparePassword = async function(candidate: string): Promise<boolean> {
+  return bcrypt.compare(candidate, this.passwordHash);
+};
 
 UserSchema.set('toJSON', {
   virtuals: true,

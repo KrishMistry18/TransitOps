@@ -7,7 +7,9 @@ export const getSettings = async (req: Request, res: Response) => {
     let settings = await DepotSettingsModel.findOne();
     if (!settings) {
       settings = await DepotSettingsModel.create({
-        depotName: 'TransitOps Default', currency: 'USD', distanceUnit: 'km'
+        depotName: 'TransitOps Default',
+        currency: 'INR',
+        distanceUnit: 'km'
       });
     }
     res.json(settings);
@@ -19,16 +21,20 @@ export const getSettings = async (req: Request, res: Response) => {
 export const updateSettings = async (req: Request, res: Response) => {
   const { depotName, currency, distanceUnit } = req.body;
   try {
-    const settings = await DepotSettingsModel.findOne();
+    let settings = await DepotSettingsModel.findOne();
     if (settings) {
       settings.depotName = depotName;
       settings.currency = currency;
       settings.distanceUnit = distanceUnit;
       await settings.save();
-      res.json(settings);
     } else {
-      res.status(404).json({ message: 'Settings not found' });
+      settings = await DepotSettingsModel.create({
+        depotName,
+        currency,
+        distanceUnit
+      });
     }
+    res.json(settings);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }

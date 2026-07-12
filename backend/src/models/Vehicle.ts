@@ -27,8 +27,7 @@ const VehicleSchema = new Schema({
   region: { type: String },
 }, { timestamps: true });
 
-// Enforce uniqueness via a real database unique index
-VehicleSchema.index({ registrationNumber: 1 }, { unique: true });
+// Enforce uniqueness via a real database unique index is done via unique: true above
 
 VehicleSchema.set('toJSON', {
   virtuals: true,
