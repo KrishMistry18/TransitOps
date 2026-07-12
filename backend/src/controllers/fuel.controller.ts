@@ -39,7 +39,7 @@ export async function createFuelLog(req: Request, res: Response) {
 
   let anomaly = { efficiency: 0, flagged: false, baseline: undefined, reason: undefined } as any;
   if (distance !== null) {
-    anomaly = await checkFuelAnomaly(vehicleId, distance, liters);
+    anomaly = await checkFuelAnomaly(vehicleId, distance, liters, cost);
   }
 
   const log = await prisma.fuelLog.create({
@@ -61,12 +61,17 @@ export async function createFuelLog(req: Request, res: Response) {
 export async function listFuelLogs(req: Request, res: Response) {
   try {
     const vehicleId = req.query.vehicleId ? String(req.query.vehicleId) : undefined;
+    const flaggedOnly = req.query.flaggedOnly === 'true';
+
+    const where: any = {};
+    if (vehicleId) where.vehicleId = vehicleId;
+    if (flaggedOnly) where.anomalyFlag = true;
 
     // Fetch logs and vehicles separately and join manually. Using Prisma's `include`
     // on this required relation throws if any log references a deleted/missing
     // vehicle (data drift) — this degrades gracefully instead of 500ing the page.
     const logs = await prisma.fuelLog.findMany({
-      where: vehicleId ? { vehicleId } : undefined,
+      where,
       orderBy: { date: 'desc' },
     });
     const vehicles = await prisma.vehicle.findMany({
@@ -93,5 +98,29 @@ export async function listFlaggedFuelLogs(_req: Request, res: Response) {
     return res.json({ success: true, data: result });
   } catch {
     return res.status(500).json({ success: false, message: 'Failed to fetch flagged fuel logs' });
+  }
+}
+
+export async function getFuelStats(_req: Request, res: Response) {
+  try {
+    const allLogs = await prisma.fuelLog.findMany();
+
+    const totalLogs = allLogs.length;
+    const flaggedCount = allLogs.filter(l => l.anomalyFlag).length;
+    const totalSpend = allLogs.reduce((sum, l) => sum + (l.cost || 0), 0);
+
+    const withEfficiency = allLogs.filter(l => l.impliedEfficiency != null && l.impliedEfficiency > 0);
+    const avgEfficiency = withEfficiency.length > 0
+      ? withEfficiency.reduce((sum, l) => sum + (l.impliedEfficiency ?? 0), 0) / withEfficiency.length
+      : 0;
+
+    return res.json({
+      totalLogs,
+      flaggedCount,
+      avgEfficiency: Math.round(avgEfficiency * 10) / 10,
+      totalSpend,
+    });
+  } catch {
+    return res.status(500).json({ success: false, message: 'Failed to fetch fuel stats' });
   }
 }

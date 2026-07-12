@@ -34,6 +34,7 @@ export default function Fleet() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [typeFilter, setTypeFilter] = useState('All');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [retireTarget, setRetireTarget] = useState<Vehicle | null>(null);
   const [formData, setFormData] = useState({
     registrationNumber: '',
     name: '',
@@ -104,10 +105,10 @@ export default function Fleet() {
     }
   };
 
-  const handleRetire = async (id: string) => {
-    if (!confirm('Are you sure you want to retire this vehicle?')) return;
+  const confirmRetire = async () => {
+    if (!retireTarget) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/vehicles/${id}`, {
+      const res = await fetch(`http://localhost:5000/api/vehicles/${retireTarget.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -116,6 +117,8 @@ export default function Fleet() {
       }
     } catch (err) {
       console.error('Failed to retire vehicle');
+    } finally {
+      setRetireTarget(null);
     }
   };
 
@@ -232,7 +235,7 @@ export default function Fleet() {
                     </button>
                     {canEdit && v.status !== 'RETIRED' && (
                       <button
-                        onClick={() => handleRetire(v.id)}
+                        onClick={() => setRetireTarget(v)}
                         className="p-2 text-text-muted hover:text-status-danger transition-colors bg-white/5 hover:bg-status-danger/10 rounded-md"
                         title="Retire Vehicle"
                       >
@@ -383,6 +386,22 @@ export default function Fleet() {
               </div>
             </form>
           )}
+        </div>
+      </Modal>
+
+      {/* Retire Vehicle Confirmation Modal (Finding B fix — replaces native confirm()) */}
+      <Modal isOpen={!!retireTarget} onClose={() => setRetireTarget(null)} title="Retire Vehicle">
+        <div className="space-y-4">
+          <p className="text-sm text-text-muted">
+            Are you sure you want to retire{' '}
+            <span className="font-semibold text-white">{retireTarget?.name}</span>{' '}
+            <span className="font-mono text-white">({retireTarget?.registrationNumber})</span>?
+            This will mark the vehicle as retired and remove it from active operations.
+          </p>
+          <div className="flex justify-end gap-3">
+            <Button type="button" variant="ghost" onClick={() => setRetireTarget(null)}>Cancel</Button>
+            <Button onClick={confirmRetire} className="!bg-status-danger hover:!bg-status-danger/80">Retire Vehicle</Button>
+          </div>
         </div>
       </Modal>
     </div>

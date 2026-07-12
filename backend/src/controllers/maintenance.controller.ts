@@ -20,6 +20,15 @@ export const getMaintenanceLogs = async (_req: Request, res: Response) => {
 export const createMaintenanceLog = async (req: Request, res: Response) => {
   try {
     const { vehicleId, description } = req.body;
+
+    // ── Input validation (Finding A fix) ──
+    if (!vehicleId || !/^[0-9a-fA-F]{24}$/.test(String(vehicleId))) {
+      return res.status(400).json({ message: 'Invalid or missing vehicle ID' });
+    }
+    if (!description || !String(description).trim()) {
+      return res.status(400).json({ message: 'Description is required' });
+    }
+
     const cost = req.body.cost != null ? Number(req.body.cost) : null;
     const date = req.body.date ? new Date(req.body.date) : new Date();
 
