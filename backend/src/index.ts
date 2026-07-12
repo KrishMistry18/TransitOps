@@ -15,6 +15,10 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/settings', settingsRoutes);
+import vehicleRoutes from './routes/vehicle.routes';
+import driverRoutes from './routes/driver.routes';
+app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/drivers', driverRoutes);
 app.use('/api', stubsRoutes); // all other routes on /api prefix
 
 app.get('/health', (req, res) => {
