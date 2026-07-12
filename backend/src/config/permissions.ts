@@ -1,32 +1,41 @@
 import { PermissionsMatrix } from '@shared/types';
 
+// Reconciled RBAC matrix aligned to requirements.md 2.4–2.7.
+// - Fleet_Manager: write vehicles + maintenance (2.6)
+// - Driver_Role: create/dispatch trips (2.7)
+// - Safety_Officer: write driver compliance; read trips + vehicles (2.5)
+// - Financial_Analyst: read reports/expenses/analytics; no write to vehicles/drivers/trips (2.4)
 export const PERMISSIONS: PermissionsMatrix = {
   FLEET_MANAGER: {
     fleet: "full",
     drivers: "view",
     trips: "view",
     fuelExp: "view",
-    analytics: "full"
+    analytics: "full",
+    maintenance: "full"
   },
-  DISPATCHER: {
+  DRIVER: {
     fleet: "view",
-    drivers: "full",
+    drivers: "view",
     trips: "full",
     fuelExp: "none",
-    analytics: "none"
+    analytics: "none",
+    maintenance: "view"
   },
   SAFETY_OFFICER: {
     fleet: "view",
-    drivers: "view",
+    drivers: "full",
     trips: "view",
     fuelExp: "none",
-    analytics: "view"
+    analytics: "view",
+    maintenance: "view"
   },
   FINANCIAL_ANALYST: {
     fleet: "none",
     drivers: "none",
     trips: "view",
     fuelExp: "full",
-    analytics: "full"
+    analytics: "full",
+    maintenance: "view"
   }
 };

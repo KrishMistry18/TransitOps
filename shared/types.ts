@@ -1,10 +1,15 @@
-export type Role = "FLEET_MANAGER" | "DISPATCHER" | "SAFETY_OFFICER" | "FINANCIAL_ANALYST";
+// TransitOps — canonical shared types (single source of truth for the integrated app).
+// Role model reconciled to requirements.md: DRIVER (Driver_Role), not DISPATCHER.
+// IDs are MongoDB ObjectId strings (Prisma + MongoDB).
+
+export type Role = "FLEET_MANAGER" | "DRIVER" | "SAFETY_OFFICER" | "FINANCIAL_ANALYST";
 
 export type VehicleStatus = "AVAILABLE" | "ON_TRIP" | "IN_SHOP" | "RETIRED";
 export type DriverStatus = "AVAILABLE" | "ON_TRIP" | "OFF_DUTY" | "SUSPENDED";
 export type TripStatus = "DRAFT" | "DISPATCHED" | "COMPLETED" | "CANCELLED";
-export type MaintenanceStatus = "ACTIVE" | "CLOSED";
+export type MaintenanceStatus = "ACTIVE" | "CLOSED"; // ACTIVE == "Open" state in requirements.md wording
 export type ExpenseType = "TOLL" | "MAINTENANCE" | "OTHER";
+export type DisruptionType = "VEHICLE_BREAKDOWN" | "EMERGENCY_MAINTENANCE" | "DRIVER_UNAVAILABLE";
 
 export interface User {
   id: string;
@@ -16,16 +21,27 @@ export interface User {
   createdAt?: Date;
 }
 
+export interface VehicleDocument {
+  id: string;
+  vehicleId: string;
+  typeLabel: string;
+  fileName: string;
+  url: string;
+  uploadedAt: Date | string;
+}
+
 export interface Vehicle {
   id: string;
   registrationNumber: string;
   name: string;
+  model?: string;
   type: string;
   maxLoadCapacity: number;
   odometer: number;
   acquisitionCost: number;
   status: VehicleStatus;
   region: string;
+  documents?: VehicleDocument[];
 }
 
 export interface Driver {
@@ -42,7 +58,9 @@ export interface Driver {
 export interface Trip {
   id: string;
   source: string;
+  sourceRegion?: string;
   destination: string;
+  destinationRegion?: string;
   vehicleId: string;
   driverId: string;
   cargoWeight: number;
@@ -53,6 +71,9 @@ export interface Trip {
   status: TripStatus;
   dispatchedAt?: Date | string;
   completedAt?: Date | string;
+  cancelledAt?: Date | string;
+  disrupted?: boolean;
+  atRisk?: boolean;
 }
 
 export interface MaintenanceLog {
@@ -72,6 +93,9 @@ export interface FuelLog {
   liters: number;
   cost: number;
   date: Date | string;
+  impliedEfficiency?: number | null;
+  anomalyFlag?: boolean;
+  anomalyReason?: string | null;
 }
 
 export interface Expense {
@@ -88,6 +112,20 @@ export interface DepotSettings {
   depotName: string;
   currency: string;
   distanceUnit: string;
+  fuelPrice?: number;
+  licenseReminderWindowDays?: number;
+  emailRemindersEnabled?: boolean;
+}
+
+export interface RecoveryAudit {
+  id: string;
+  tripId: string;
+  originalVehicleId?: string | null;
+  originalDriverId?: string | null;
+  replacementVehicleId: string;
+  replacementDriverId: string;
+  disruptionType: DisruptionType;
+  timestamp: Date | string;
 }
 
 export interface DashboardKPIs {
@@ -121,6 +159,7 @@ export interface FeaturePermissions {
   trips: PermissionLevel;
   fuelExp: PermissionLevel;
   analytics: PermissionLevel;
+  maintenance: PermissionLevel;
 }
 
 export type PermissionsMatrix = Record<string, FeaturePermissions>;

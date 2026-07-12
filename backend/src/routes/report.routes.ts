@@ -1,21 +1,13 @@
 import express from 'express';
-import * as reportController from '../controllers/report.controller';
+import { getVehiclesReport, getFleetUtilization, exportVehiclesCSV, exportVehiclesPDF } from '../controllers/report.controller';
 import { authenticate } from '../middleware/auth';
-import { requireRole } from '../middleware/rbac';
-import { PERMISSIONS } from '../config/permissions';
+import { requireFeature } from '../middleware/rbac';
 
 const router = express.Router();
 
-const canViewAnalytics = requireRole(
-  ...Object.entries(PERMISSIONS)
-    .filter(([_, p]) => p.analytics !== 'none')
-    .map(([role]) => role as any)
-);
-
-router.get('/vehicles', authenticate, canViewAnalytics, reportController.getVehiclesReport);
-router.get('/vehicles/export', authenticate, canViewAnalytics, reportController.exportVehiclesCSV);
-
-// Note: /reports/fleet-utilization was in stubs, but fleetUtilization is now computed directly
-// inside the dashboard controller GET /api/dashboard. We don't need a separate route unless specifically requested.
+router.get('/vehicles', authenticate, requireFeature('analytics', 'view'), getVehiclesReport);
+router.get('/fleet-utilization', authenticate, requireFeature('analytics', 'view'), getFleetUtilization);
+router.get('/vehicles/export', authenticate, requireFeature('analytics', 'view'), exportVehiclesCSV);
+router.get('/vehicles/export-pdf', authenticate, requireFeature('analytics', 'view'), exportVehiclesPDF);
 
 export default router;

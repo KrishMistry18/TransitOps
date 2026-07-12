@@ -1,0 +1,423 @@
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Button, Input, Select } from '../components/ui';
+
+type Step = 1 | 2 | 3;
+
+interface FieldConfig {
+  name: string;
+  label: string;
+  type: 'text' | 'email' | 'password' | 'select' | 'textarea' | 'date';
+  options?: string[];
+  required?: boolean;
+}
+
+const ROLE_FIELDS: Record<string, FieldConfig[]> = {
+  'Fleet Manager': [
+    { name: 'employeeId', label: 'Employee ID', type: 'text', required: true },
+    { name: 'depot', label: 'Depot / Branch', type: 'text', required: true },
+    { name: 'region', label: 'Region Managed', type: 'text', required: true },
+    { name: 'experience', label: 'Years of Experience', type: 'select', options: ['1-3 years', '3-5 years', '5+ years'], required: true },
+  ],
+  'Driver': [
+    { name: 'employeeId', label: 'Employee ID', type: 'text', required: true },
+    { name: 'licenseNumber', label: 'Driving License Number', type: 'text', required: true },
+    { name: 'licenseCategory', label: 'License Category', type: 'select', options: ['Class A', 'Class B', 'Class C', 'CDL-A', 'CDL-B'], required: true },
+    { name: 'licenseExpiryDate', label: 'License Expiry Date', type: 'date', required: true },
+    { name: 'experience', label: 'Years of Driving Experience', type: 'select', options: ['0-1 years', '1-3 years', '3-5 years', '5+ years'], required: true },
+    { name: 'depot', label: 'Assigned Depot / Branch', type: 'text', required: true },
+    { name: 'region', label: 'Operating Region', type: 'text', required: true },
+  ],
+  'Safety Officer': [
+    { name: 'employeeId', label: 'Employee ID', type: 'text', required: true },
+    { name: 'certificationId', label: 'Safety Certification ID', type: 'text', required: true },
+    { name: 'region', label: 'Region Covered', type: 'text', required: true },
+  ],
+  'Financial Analyst': [
+    { name: 'employeeId', label: 'Employee ID', type: 'text', required: true },
+    { name: 'department', label: 'Department Code', type: 'text', required: true },
+  ]
+};
+
+const ROLES = [
+  { id: 'Fleet Manager', title: 'Fleet Manager', desc: 'Manage assets and depots' },
+  { id: 'Driver', title: 'Driver', desc: 'Execute routes and manage trips' },
+  { id: 'Safety Officer', title: 'Safety Officer', desc: 'Monitor compliance and safety' },
+  { id: 'Financial Analyst', title: 'Financial Analyst', desc: 'Analyze costs and efficiency' },
+];
+
+export default function RequestAccess() {
+  const [step, setStep] = useState<Step>(1);
+  const [selectedRole, setSelectedRole] = useState<string>('');
+  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const navigate = useNavigate();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    if (error) setError(null);
+  };
+
+  const handleRoleContinue = () => {
+    if (!selectedRole) {
+      setError('Please select a role to continue.');
+      return;
+    }
+    setError(null);
+    setStep(2);
+  };
+
+  const validateForm = () => {
+    if (!formData.firstName || !formData.lastName) return 'Name fields are required.';
+    if (!formData.email || !/^\S+@\S+\.\S+$/.test(formData.email)) return 'Valid email is required.';
+    if (!formData.password || formData.password.length < 8) return 'Password must be at least 8 characters.';
+    if (formData.password !== formData.confirmPassword) return 'Passwords do not match.';
+    
+    // Validate dynamic fields
+    const dynamicFields = ROLE_FIELDS[selectedRole] || [];
+    for (const field of dynamicFields) {
+      if (field.required && !formData[field.name]) {
+        return `${field.label} is required.`;
+      }
+    }
+    return null;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/request-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, role: selectedRole })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to submit request');
+      setStep(3); // Success step
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while submitting the request.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen w-full flex bg-bg font-sans selection:bg-accent-primary/30 selection:text-text-primary">
+      {/* Left Panel - Branding & Value Prop */}
+      <div className="hidden lg:block w-[40%] relative overflow-hidden bg-bg">
+        <img 
+          src="/fleet_abstract.png" 
+          alt="Fleet Operations Abstract Illustration" 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-bg/90 via-bg/20 to-transparent pointer-events-none" />
+        
+        <div className="absolute bottom-12 left-12 right-12 z-10">
+          <h1 className="text-4xl font-semibold text-white leading-[1.1] tracking-tight mb-4">
+            Fleet Operations Platform
+          </h1>
+          <p className="text-white/80 text-lg max-w-md leading-relaxed">
+            Secure, real-time logistics and dispatch management for enterprise fleets.
+          </p>
+        </div>
+      </div>
+
+      {/* Right Panel - Flow */}
+      <div className="w-full lg:w-[60%] flex items-center justify-center p-6 sm:p-12 relative overflow-y-auto">
+        <div className="w-full max-w-[560px] py-12">
+          
+          {/* Logo */}
+          <div className="flex items-center gap-3 mb-10">
+            <div className="w-10 h-10 shrink-0 rounded-[8px] bg-accent-primary flex items-center justify-center shadow-[0_0_15px_rgba(var(--color-accent-primary),0.4)]">
+              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <span className="text-2xl font-bold tracking-tight text-text-primary">TransitOps</span>
+          </div>
+
+          <div className="mb-8 flex items-center gap-2">
+            <Link to="/login" className="text-sm text-text-muted hover:text-text-primary transition-colors flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to login
+            </Link>
+          </div>
+
+          {error && (
+            <div className="mb-6 p-4 rounded-md bg-status-danger/10 border border-status-danger/20 flex items-start gap-3">
+              <svg className="w-5 h-5 text-status-danger shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span className="text-sm text-status-danger font-medium leading-relaxed">{error}</span>
+            </div>
+          )}
+
+          {step === 1 && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="mb-8">
+                <h2 className="text-2xl font-semibold text-text-primary tracking-tight mb-2">Select your role</h2>
+                <p className="text-sm text-text-muted">Choose the role that best matches your responsibilities to ensure proper workspace configuration.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                {ROLES.map((role) => (
+                  <button
+                    key={role.id}
+                    onClick={() => setSelectedRole(role.id)}
+                    className={`text-left p-5 rounded-[10px] border transition-all duration-200 ${
+                      selectedRole === role.id 
+                        ? 'border-accent-primary bg-accent-primary/5 ring-1 ring-accent-primary shadow-[0_0_15px_rgba(var(--color-accent-primary),0.1)]' 
+                        : 'border-border bg-surface hover:bg-surface-raised hover:border-text-muted/30'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold text-text-primary text-[15px]">{role.title}</span>
+                      {selectedRole === role.id && (
+                        <svg className="w-5 h-5 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      )}
+                    </div>
+                    <p className="text-sm text-text-muted leading-relaxed">{role.desc}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={handleRoleContinue} className="px-8">
+                  Continue
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="mb-8">
+                <h2 className="text-2xl font-semibold text-text-primary tracking-tight mb-2">Complete your profile</h2>
+                <p className="text-sm text-text-muted">Provide your information to request {selectedRole.toLowerCase()} access.</p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-text-primary" htmlFor="firstName">First Name</label>
+                    <Input id="firstName" name="firstName" value={formData.firstName || ''} onChange={handleInputChange} placeholder="John" className="h-10" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-text-primary" htmlFor="lastName">Last Name</label>
+                    <Input id="lastName" name="lastName" value={formData.lastName || ''} onChange={handleInputChange} placeholder="Doe" className="h-10" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-text-primary" htmlFor="email">Official Email</label>
+                    <Input id="email" name="email" type="email" value={formData.email || ''} onChange={handleInputChange} placeholder="name@company.com" className="h-10" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-text-primary" htmlFor="mobile">Mobile Number</label>
+                    <Input id="mobile" name="mobile" type="tel" value={formData.mobile || ''} onChange={handleInputChange} placeholder="+1 (555) 000-0000" className="h-10" />
+                  </div>
+                </div>
+
+                {/* Role Specific Fields */}
+                {ROLE_FIELDS[selectedRole] && (
+                  <>
+                    <div className="my-8">
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                          <div className="w-full border-t border-border"></div>
+                        </div>
+                        <div className="relative flex justify-start">
+                          <span className="pr-3 bg-bg text-xs font-semibold text-text-muted uppercase tracking-wider">
+                            Role Details ({selectedRole})
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      {ROLE_FIELDS[selectedRole].map((field) => (
+                        <div key={field.name} className="space-y-1.5">
+                          <label className="text-sm font-medium text-text-primary" htmlFor={field.name}>
+                            {field.label} {field.required && <span className="text-status-danger">*</span>}
+                          </label>
+                          {field.type === 'select' ? (
+                            <Select id={field.name} name={field.name} value={formData[field.name] || ''} onChange={handleInputChange} className="h-10">
+                              <option value="">Select option...</option>
+                              {field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                            </Select>
+                          ) : (
+                            <Input 
+                              id={field.name} 
+                              name={field.name} 
+                              type={field.type} 
+                              value={formData[field.name] || ''} 
+                              onChange={handleInputChange} 
+                              className="h-10"
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                <div className="space-y-1.5 pt-2">
+                  <label className="text-sm font-medium text-text-primary" htmlFor="reason">Reason for Access <span className="text-status-danger">*</span></label>
+                  <textarea 
+                    id="reason" 
+                    name="reason" 
+                    value={formData.reason || ''} 
+                    onChange={handleInputChange as any} 
+                    rows={3}
+                    placeholder="Briefly explain why you need access to this workspace..."
+                    className="flex w-full rounded-[6px] border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-[2px] focus:ring-accent-primary"
+                  />
+                </div>
+
+                <div className="my-8">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                      <div className="w-full border-t border-border"></div>
+                    </div>
+                    <div className="relative flex justify-start">
+                      <span className="pr-3 bg-bg text-xs font-semibold text-text-muted uppercase tracking-wider">
+                        Security
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-text-primary" htmlFor="password">Password</label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        name="password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={formData.password || ''}
+                        onChange={handleInputChange}
+                        className="h-10 pr-10"
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                         {showPassword ? (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-text-primary" htmlFor="confirmPassword">Confirm Password</label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={formData.confirmPassword || ''}
+                        onChange={handleInputChange}
+                        className="h-10 pr-10"
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                         {showConfirmPassword ? (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 pt-4">
+                  <Button type="button" variant="ghost" onClick={() => setStep(1)} className="px-6" disabled={isLoading}>
+                    Back
+                  </Button>
+                  <Button type="submit" className="flex-1 h-10 relative overflow-hidden" disabled={isLoading}>
+                    <span className={`flex items-center gap-2 transition-opacity ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
+                      Submit Request
+                    </span>
+                    {isLoading && (
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </span>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 text-center py-8">
+              <div className="w-16 h-16 bg-status-available/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-status-available" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              
+              <h2 className="text-3xl font-semibold text-text-primary tracking-tight mb-4">Request Submitted</h2>
+              
+              <p className="text-text-muted mb-8 max-w-sm mx-auto leading-relaxed">
+                Your request for <span className="font-medium text-text-primary">{selectedRole}</span> access has been sent to the administration team for approval.
+              </p>
+
+              <div className="bg-surface-raised border border-border rounded-[10px] p-5 mb-8 max-w-xs mx-auto">
+                <span className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">Reference ID</span>
+                <span className="text-lg font-mono text-text-primary font-medium tracking-wide">REQ-84729X</span>
+              </div>
+
+              <div className="flex items-center justify-center gap-4">
+                <Button onClick={() => navigate('/login')} variant="secondary">
+                  Return to Login
+                </Button>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+}

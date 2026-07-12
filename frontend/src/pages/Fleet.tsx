@@ -5,11 +5,31 @@ import {
   Button, Card, Input, Select, Table, TableHeader, TableRow, 
   TableHead, TableBody, TableCell, StatusChip, Modal
 } from '../components/ui';
-import { Search, Plus, Trash2 } from 'lucide-react';
+import { SortableHead, sortRows, SortDirection } from '../components/ui/SortableHead';
+import { Search, Plus, Trash2, FileText } from 'lucide-react';
+import { useDemo } from '../features/demo/DemoContext';
+
+interface VehicleDoc { id: string; typeLabel: string; fileName: string; url: string; uploadedAt: string }
 
 export default function Fleet() {
   const { token, user } = useContext(AuthContext);
+  const { completeStep } = useDemo();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [docVehicle, setDocVehicle] = useState<Vehicle | null>(null);
+  const [docs, setDocs] = useState<VehicleDoc[]>([]);
+  const [docForm, setDocForm] = useState({ typeLabel: 'Registration', fileName: '', url: '' });
+  const [sortColumn, setSortColumn] = useState('');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+  const sortedVehicles = sortRows(vehicles, sortColumn, sortDirection);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [typeFilter, setTypeFilter] = useState('All');
@@ -78,6 +98,7 @@ export default function Fleet() {
         registrationNumber: '', name: '', model: '', type: 'Light Duty', 
         maxLoadCapacity: '', acquisitionCost: '', region: 'North'
       });
+      completeStep('register-vehicle'); // Req 21.2 step 1
     } catch (err: any) {
       setError(err.message);
     }
@@ -96,6 +117,42 @@ export default function Fleet() {
     } catch (err) {
       console.error('Failed to retire vehicle');
     }
+  };
+
+  // ---- Vehicle documents (Req 20) ----
+  const openDocs = async (v: Vehicle) => {
+    setDocVehicle(v);
+    setDocForm({ typeLabel: 'Registration', fileName: '', url: '' });
+    const res = await fetch(`http://localhost:5000/api/vehicles/${v.id}/documents`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) setDocs(await res.json());
+  };
+
+  const addDoc = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!docVehicle) return;
+    const res = await fetch(`http://localhost:5000/api/vehicles/${docVehicle.id}/documents`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(docForm)
+    });
+    if (res.ok) {
+      setDocForm({ typeLabel: 'Registration', fileName: '', url: '' });
+      const listRes = await fetch(`http://localhost:5000/api/vehicles/${docVehicle.id}/documents`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (listRes.ok) setDocs(await listRes.json());
+    }
+  };
+
+  const deleteDoc = async (docId: string) => {
+    if (!docVehicle) return;
+    const res = await fetch(`http://localhost:5000/api/vehicles/${docVehicle.id}/documents/${docId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) setDocs(docs.filter(d => d.id !== docId));
   };
 
   return (
@@ -144,17 +201,17 @@ export default function Fleet() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>REG NO</TableHead>
-              <TableHead>NAME</TableHead>
-              <TableHead>TYPE</TableHead>
-              <TableHead>ODOMETER</TableHead>
-              <TableHead>CAPACITY</TableHead>
-              <TableHead>STATUS</TableHead>
-              {canEdit && <TableHead>ACTIONS</TableHead>}
+              <SortableHead label="REG NO" column="registrationNumber" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
+              <SortableHead label="NAME" column="name" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
+              <SortableHead label="TYPE" column="type" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
+              <SortableHead label="ODOMETER" column="odometer" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
+              <SortableHead label="CAPACITY" column="maxLoadCapacity" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
+              <SortableHead label="STATUS" column="status" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
+              <TableHead>ACTIONS</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {vehicles.map((v) => (
+            {sortedVehicles.map((v) => (
               <TableRow key={v.id} className={v.status === 'RETIRED' ? 'opacity-50' : ''}>
                 <TableCell mono className="font-medium text-white">{v.registrationNumber}</TableCell>
                 <TableCell>{v.name}</TableCell>
@@ -164,24 +221,31 @@ export default function Fleet() {
                 <TableCell>
                   <StatusChip status={v.status} domain="vehicle" />
                 </TableCell>
-                {canEdit && (
-                  <TableCell>
-                    {v.status !== 'RETIRED' && (
-                      <button 
-                        onClick={() => handleRetire(v.id)} 
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => openDocs(v)}
+                      className="p-2 text-text-muted hover:text-accent transition-colors bg-white/5 hover:bg-accent/10 rounded-md"
+                      title="Documents"
+                    >
+                      <FileText size={16} />
+                    </button>
+                    {canEdit && v.status !== 'RETIRED' && (
+                      <button
+                        onClick={() => handleRetire(v.id)}
                         className="p-2 text-text-muted hover:text-status-danger transition-colors bg-white/5 hover:bg-status-danger/10 rounded-md"
                         title="Retire Vehicle"
                       >
                         <Trash2 size={16} />
                       </button>
                     )}
-                  </TableCell>
-                )}
+                  </div>
+                </TableCell>
               </TableRow>
             ))}
             {vehicles.length === 0 && (
               <TableRow>
-                <TableCell colSpan={canEdit ? 7 : 6} className="text-center py-8 text-text-muted">
+                <TableCell colSpan={7} className="text-center py-8 text-text-muted">
                   No vehicles found
                 </TableCell>
               </TableRow>
@@ -273,6 +337,53 @@ export default function Fleet() {
             <Button type="submit">Save Vehicle</Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Vehicle Documents Modal (Req 20) */}
+      <Modal isOpen={!!docVehicle} onClose={() => setDocVehicle(null)} title={`Documents — ${docVehicle?.registrationNumber ?? ''}`}>
+        <div className="space-y-4">
+          <div className="space-y-2 max-h-56 overflow-y-auto">
+            {docs.map(d => (
+              <div key={d.id} className="flex items-center justify-between rounded-lg border border-white/5 bg-white/[0.02] p-3">
+                <div>
+                  <div className="text-sm font-medium text-white">{d.fileName}</div>
+                  <div className="text-[0.7rem] text-text-muted uppercase tracking-widest">{d.typeLabel}</div>
+                </div>
+                {canEdit && (
+                  <button onClick={() => deleteDoc(d.id)} className="p-1.5 text-text-muted hover:text-status-danger bg-white/5 hover:bg-status-danger/10 rounded" title="Delete">
+                    <Trash2 size={14} />
+                  </button>
+                )}
+              </div>
+            ))}
+            {docs.length === 0 && <div className="text-center py-6 text-text-muted text-sm">No documents attached</div>}
+          </div>
+
+          {canEdit && (
+            <form onSubmit={addDoc} className="border-t border-white/5 pt-4 grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[0.75rem] font-medium text-text-muted uppercase tracking-[0.04em] mb-1">Type</label>
+                <Select value={docForm.typeLabel} onChange={e => setDocForm({ ...docForm, typeLabel: e.target.value })}>
+                  <option value="Registration">Registration</option>
+                  <option value="Insurance">Insurance</option>
+                  <option value="Inspection">Inspection</option>
+                  <option value="Other">Other</option>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-[0.75rem] font-medium text-text-muted uppercase tracking-[0.04em] mb-1">File Name</label>
+                <Input required value={docForm.fileName} onChange={e => setDocForm({ ...docForm, fileName: e.target.value })} placeholder="reg-2026.pdf" />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-[0.75rem] font-medium text-text-muted uppercase tracking-[0.04em] mb-1">URL (optional)</label>
+                <Input value={docForm.url} onChange={e => setDocForm({ ...docForm, url: e.target.value })} placeholder="https://..." />
+              </div>
+              <div className="col-span-2 flex justify-end">
+                <Button type="submit" icon={<Plus size={14} />}>Attach Document</Button>
+              </div>
+            </form>
+          )}
+        </div>
       </Modal>
     </div>
   );

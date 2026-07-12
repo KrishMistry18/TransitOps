@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { Role } from '@shared/types';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtkey123';
 
@@ -13,11 +12,8 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; role: Role };
-    req.user = {
-      userId: decoded.userId,
-      role: decoded.role
-    };
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded as any;
     next();
   } catch (error) {
     return res.status(401).json({ message: 'Invalid token' });

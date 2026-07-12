@@ -1,122 +1,86 @@
 import { Request, Response } from 'express';
-import mongoose from 'mongoose';
-import { MaintenanceLogModel } from '../models/MaintenanceLog';
-import { VehicleModel } from '../models/Vehicle';
+import { PrismaClient, Prisma } from '@prisma/client';
 
-export const createMaintenanceLog = async (req: Request, res: Response) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+const prisma = new PrismaClient();
+
+// GET /api/maintenance — list logs with vehicle registration (Req 8.7)
+export const getMaintenanceLogs = async (_req: Request, res: Response) => {
   try {
-    const { vehicleId, description, cost, date } = req.body;
+    const logs = await prisma.maintenanceLog.findMany({
+      include: { vehicle: { select: { registrationNumber: true, name: true } } },
+      orderBy: { startDate: 'desc' },
+    });
+    res.json(logs);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch maintenance logs' });
+  }
+};
 
-    const vehicle = await VehicleModel.findById(vehicleId).session(session);
-    if (!vehicle) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(404).json({ message: 'Vehicle not found' });
+// POST /api/maintenance — create log, set vehicle IN_SHOP (Req 8.1, 8.2), guard on-trip (Req 8.4)
+export const createMaintenanceLog = async (req: Request, res: Response) => {
+  try {
+    const { vehicleId, description } = req.body;
+    const cost = req.body.cost != null ? Number(req.body.cost) : null;
+    const date = req.body.date ? new Date(req.body.date) : new Date();
+
+    const result = await prisma.$transaction(async (tx) => {
+      const vehicle = await tx.vehicle.findUnique({ where: { id: String(vehicleId) } });
+      if (!vehicle) return { error: { code: 404, message: 'Vehicle not found' } };
+      if (vehicle.status === 'ON_TRIP') {
+        return { error: { code: 400, message: 'Cannot start maintenance on a vehicle that is on a trip' } };
+      }
+
+      const existingOpen = await tx.maintenanceLog.findFirst({
+        where: { vehicleId: vehicle.id, status: 'ACTIVE' },
+      });
+      if (existingOpen) return { error: { code: 400, message: 'Vehicle already has an open maintenance log' } };
+
+      const log = await tx.maintenanceLog.create({
+        data: { vehicleId: vehicle.id, description, cost, startDate: date, status: 'ACTIVE' },
+      });
+      // Persist status change atomically with the log (Req 11.4). Retired vehicles keep their status.
+      if (vehicle.status !== 'RETIRED') {
+        await tx.vehicle.update({ where: { id: vehicle.id }, data: { status: 'IN_SHOP' } });
+      }
+      return { log };
+    });
+
+    if ('error' in result && result.error) {
+      return res.status(result.error.code).json({ message: result.error.message });
     }
-
-    if (vehicle.status === 'ON_TRIP') {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).json({ message: 'Cannot service a vehicle currently on a trip' });
-    }
-    
-    // Check if it already has an ACTIVE maintenance record
-    const activeLog = await MaintenanceLogModel.findOne({
-      vehicleId,
-      status: 'ACTIVE'
-    }).session(session);
-
-    if (activeLog) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).json({ message: 'Vehicle is already in shop' });
-    }
-
-    const log = await MaintenanceLogModel.create([{
-      vehicle: vehicleId,
-      description,
-      cost: Number(cost),
-      startDate: new Date(date),
-      status: 'ACTIVE'
-    }], { session });
-
-    vehicle.status = 'IN_SHOP';
-    await vehicle.save({ session });
-
-    await session.commitTransaction();
-    session.endSession();
-
-    res.status(201).json({ log: log[0], vehicle });
-  } catch (error: any) {
-    await session.abortTransaction();
-    session.endSession();
-    if (error.code === 11000) {
-      return res.status(400).json({ message: 'Vehicle already has an active maintenance log' });
-    }
+    res.status(201).json(result.log);
+  } catch {
     res.status(500).json({ error: 'Failed to create maintenance log' });
   }
 };
 
+// POST /api/maintenance/:id/close — close log, restore vehicle to AVAILABLE unless RETIRED (Req 8.5, 8.6)
 export const closeMaintenanceLog = async (req: Request, res: Response) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
   try {
-    const logId = req.params.id;
-    const log = await MaintenanceLogModel.findById(logId).populate('vehicle').session(session);
+    const id = String(req.params.id);
 
-    if (!log) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(404).json({ message: 'Maintenance log not found' });
-    }
-    
-    if (log.status === 'CLOSED') {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).json({ message: 'Maintenance log already closed' });
-    }
+    const result = await prisma.$transaction(async (tx) => {
+      const log = await tx.maintenanceLog.findUnique({ where: { id } });
+      if (!log) return { error: { code: 404, message: 'Maintenance log not found' } };
+      if (log.status === 'CLOSED') return { error: { code: 400, message: 'Maintenance log already closed' } };
 
-    log.status = 'CLOSED';
-    log.endDate = new Date();
-    await log.save({ session });
+      const updated = await tx.maintenanceLog.update({
+        where: { id },
+        data: { status: 'CLOSED', endDate: new Date() },
+      });
 
-    let vehicle = null;
-    if (log.vehicle) {
-      vehicle = await VehicleModel.findById(log.vehicle._id).session(session);
+      const vehicle = await tx.vehicle.findUnique({ where: { id: log.vehicleId } });
       if (vehicle && vehicle.status !== 'RETIRED') {
-        vehicle.status = 'AVAILABLE';
-        await vehicle.save({ session });
+        await tx.vehicle.update({ where: { id: vehicle.id }, data: { status: 'AVAILABLE' } });
       }
+      return { log: updated };
+    });
+
+    if ('error' in result && result.error) {
+      return res.status(result.error.code).json({ message: result.error.message });
     }
-
-    await session.commitTransaction();
-    session.endSession();
-
-    res.json({
-      log,
-      vehicle
-    });
-  } catch (error: any) {
-    await session.abortTransaction();
-    session.endSession();
+    res.json(result.log);
+  } catch {
     res.status(500).json({ error: 'Failed to close maintenance log' });
-  }
-};
-
-export const getMaintenanceLogs = async (req: Request, res: Response) => {
-  try {
-    const logs = await MaintenanceLogModel.find()
-      .populate({ path: 'vehicle', select: '-__v' })
-      .sort({ startDate: -1 });
-    
-    const mappedLogs = logs.map(l => {
-      const doc: any = l.toJSON();
-      return doc;
-    });
-    res.json(mappedLogs);
-  } catch (error: any) {
-    res.status(500).json({ error: 'Failed to fetch maintenance logs' });
   }
 };

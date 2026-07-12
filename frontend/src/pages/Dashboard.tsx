@@ -1,25 +1,35 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Card, Select, Table, TableHeader, TableRow, TableHead, TableBody, TableCell, StatusChip } from '../components/ui';
-import { Activity, Truck, Wrench, MapPin, CheckCircle, Clock, Percent } from 'lucide-react';
+import { Activity, Truck, Wrench, MapPin, CheckCircle, Clock, Percent, ShieldAlert, ShieldCheck, DollarSign } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { Trip } from '@shared/types';
 
 interface DashboardStats {
-  activeVehicles: number | null;
-  availableVehicles: number | null;
-  vehiclesInMaintenance: number | null;
-  activeTrips: number | null;
-  pendingTrips: number | null;
-  driversOnDuty: number | null;
-  fleetUtilization: number | null;
+  activeVehicles: number | string | null;
+  availableVehicles: number | string | null;
+  vehiclesInMaintenance: number | string | null;
+  activeTrips: number | string | null;
+  pendingTrips: number | string | null;
+  driversOnDuty: number | string | null;
+  fleetUtilization: string | null;
+  atRiskTrips: number | string | null;
+  recoveredToday: number | string | null;
   _warnings?: string;
 }
+
+// Which KPI labels are "primary" per role (Req 15.1–15.4). Others still show, just after.
+const PRIMARY_BY_ROLE: Record<string, string[]> = {
+  FLEET_MANAGER: ['Available Vehicles', 'In Maintenance', 'Fleet Utilization', 'At-Risk Trips'],
+  SAFETY_OFFICER: ['Drivers On Duty'], // compliance/license widgets shown separately below
+  FINANCIAL_ANALYST: [], // cost/fuel/ROI widgets shown separately below (Analytics-oriented)
+  DRIVER: ['Active Trips', 'Pending Trips'],
+};
 
 const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#64748b']; // green, blue, amber, slate
 
 export default function Dashboard() {
-  const { token } = useContext(AuthContext);
+  const { token, user } = useContext(AuthContext);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [trips, setTrips] = useState<Trip[]>([]);
   
@@ -55,26 +65,30 @@ export default function Dashboard() {
     }
   }, [token, filterType, filterStatus, filterRegion]);
 
-  const kpis = [
+  const primaryLabels = PRIMARY_BY_ROLE[user?.role ?? ''] ?? [];
+
+  const allKpis = [
     { label: 'Active Vehicles', value: stats?.activeVehicles, icon: <Activity size={18} className="text-accent" /> },
     { label: 'Available Vehicles', value: stats?.availableVehicles, icon: <Truck size={18} className="text-status-available" /> },
     { label: 'In Maintenance', value: stats?.vehiclesInMaintenance, icon: <Wrench size={18} className="text-status-inshop" /> },
     { label: 'Active Trips', value: stats?.activeTrips, icon: <MapPin size={18} className="text-status-pending" /> },
     { label: 'Pending Trips', value: stats?.pendingTrips, icon: <Clock size={18} className="text-status-inshop" /> },
     { label: 'Drivers On Duty', value: stats?.driversOnDuty, icon: <CheckCircle size={18} className="text-accent" /> },
-    { 
-      label: 'Fleet Utilization', 
-      value: stats?.fleetUtilization !== null && stats?.fleetUtilization !== undefined 
-        ? `${stats.fleetUtilization.toFixed(1)}%` 
-        : null, 
-      icon: <Percent size={18} className="text-accent" /> 
-    },
+    { label: 'Fleet Utilization', value: stats?.fleetUtilization ?? null, icon: <Percent size={18} className="text-accent" /> },
+    { label: 'At-Risk Trips', value: stats?.atRiskTrips, icon: <ShieldAlert size={18} className="text-status-danger" /> },
+    { label: 'Recovered Today', value: stats?.recoveredToday, icon: <ShieldCheck size={18} className="text-status-available" /> },
   ];
 
+  // Req 15 — primary content first (role-tailored), remaining KPIs after.
+  const primaryKpis = allKpis.filter(k => primaryLabels.includes(k.label));
+  const otherKpis = allKpis.filter(k => !primaryLabels.includes(k.label));
+  const kpis = primaryKpis.length > 0 ? [...primaryKpis, ...otherKpis] : allKpis;
+
+  const num = (v: number | string | null | undefined) => (typeof v === 'number' ? v : 0);
   const pieData = stats ? [
-    { name: 'Available', value: stats.availableVehicles || 0 },
-    { name: 'On Trip', value: stats.activeVehicles || 0 },
-    { name: 'In Shop', value: stats.vehiclesInMaintenance || 0 },
+    { name: 'Available', value: num(stats.availableVehicles) },
+    { name: 'On Trip', value: num(stats.activeVehicles) },
+    { name: 'In Shop', value: num(stats.vehiclesInMaintenance) },
   ] : [];
 
   return (
@@ -111,20 +125,44 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* KPI Cards */}
+      {/* KPI Cards — role-tailored primary content first (Req 15) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {kpis.map((kpi, idx) => (
-          <Card key={idx} className="flex items-center gap-4 p-4">
-            <div className="p-3 rounded-lg bg-white/5 border border-white/5">{kpi.icon}</div>
-            <div>
-              <div className="text-[0.65rem] text-text-muted uppercase tracking-widest">{kpi.label}</div>
-              <div className="text-xl font-bold text-white mt-1">
-                {kpi.value === null || kpi.value === undefined ? '—' : kpi.value}
+        {kpis.map((kpi, idx) => {
+          const isPrimary = primaryLabels.includes(kpi.label);
+          return (
+            <Card key={idx} className={`flex items-center gap-4 p-4 ${isPrimary ? 'ring-1 ring-accent-primary/40' : ''}`}>
+              <div className="p-3 rounded-lg bg-white/5 border border-white/5">{kpi.icon}</div>
+              <div>
+                <div className="text-[0.65rem] text-text-muted uppercase tracking-widest">{kpi.label}</div>
+                <div className="text-xl font-bold text-white mt-1">
+                  {kpi.value === null || kpi.value === undefined ? '—' : kpi.value}
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
+
+      {/* Role-specific secondary content (Req 15.2/15.3) */}
+      {user?.role === 'SAFETY_OFFICER' && (
+        <Card className="p-4 flex items-center gap-3">
+          <ShieldCheck className="text-accent shrink-0" size={18} />
+          <span className="text-sm text-text-muted">
+            Driver compliance and license validity are tracked on the{' '}
+            <a href="/compliance" className="text-accent underline">Compliance Radar</a>.
+          </span>
+        </Card>
+      )}
+      {user?.role === 'FINANCIAL_ANALYST' && (
+        <Card className="p-4 flex items-center gap-3">
+          <DollarSign className="text-status-available shrink-0" size={18} />
+          <span className="text-sm text-text-muted">
+            Operational cost, fuel, and ROI breakdowns are available on{' '}
+            <a href="/analytics" className="text-accent underline">Analytics</a> and{' '}
+            <a href="/fuel" className="text-accent underline">Fuel &amp; Expenses</a>.
+          </span>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chart */}
@@ -188,7 +226,7 @@ export default function Dashboard() {
                     <StatusChip status={trip.status} domain="trip" />
                   </TableCell>
                   <TableCell className="text-text-muted text-xs">
-                    {new Date(trip.createdAt || '').toLocaleDateString()}
+                    {trip.dispatchedAt ? new Date(trip.dispatchedAt).toLocaleDateString() : '—'}
                   </TableCell>
                 </TableRow>
               ))}

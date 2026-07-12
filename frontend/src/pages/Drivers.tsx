@@ -6,10 +6,13 @@ import {
   Button, Card, Input, Select, Table, TableHeader, TableRow, 
   TableHead, TableBody, TableCell, StatusChip, Modal, SafetyScore, Avatar
 } from '../components/ui';
+import { SortableHead, sortRows, SortDirection } from '../components/ui/SortableHead';
 import { Search, Plus, AlertCircle, Trash2 } from 'lucide-react';
+import { useDemo } from '../features/demo/DemoContext';
 
 export default function Drivers() {
   const { token, user } = useContext(AuthContext);
+  const { completeStep } = useDemo();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -23,7 +26,19 @@ export default function Drivers() {
   });
   const [error, setError] = useState('');
   
-  const canEdit = user?.role === 'DISPATCHER';
+  const canEdit = user?.role === 'SAFETY_OFFICER'; // drivers:full — Safety_Officer (Req 2.5)
+  const [sortColumn, setSortColumn] = useState('');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+  const sortedDrivers = sortRows(drivers, sortColumn, sortDirection);
 
   const fetchDrivers = async () => {
     try {
@@ -71,6 +86,7 @@ export default function Drivers() {
         name: '', licenseNumber: '', licenseCategory: 'LMV', 
         licenseExpiryDate: '', contactNumber: ''
       });
+      completeStep('register-driver'); // Req 21.2 step 2
     } catch (err: any) {
       setError(err.message);
     }
@@ -140,18 +156,18 @@ export default function Drivers() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>DRIVER</TableHead>
-              <TableHead>LICENSE NO</TableHead>
+              <SortableHead label="DRIVER" column="name" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
+              <SortableHead label="LICENSE NO" column="licenseNumber" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
               <TableHead>CATEGORY</TableHead>
-              <TableHead>EXPIRY</TableHead>
+              <SortableHead label="EXPIRY" column="licenseExpiryDate" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
               <TableHead>CONTACT</TableHead>
-              <TableHead>SAFETY</TableHead>
+              <SortableHead label="SAFETY" column="safetyScore" activeColumn={sortColumn} direction={sortDirection} onSort={handleSort} />
               <TableHead>STATUS</TableHead>
               {canEdit && <TableHead>ACTIONS</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {drivers.map((d) => {
+            {sortedDrivers.map((d) => {
               const expired = isExpired(d.licenseExpiryDate);
               return (
                 <TableRow key={d.id} className={expired ? 'border-l-4 border-l-status-danger' : ''}>

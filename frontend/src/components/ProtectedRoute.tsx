@@ -4,6 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { Role } from '@shared/types';
 import Sidebar from './Sidebar';
 import { Topbar } from './Topbar';
+import CommandPalette from './CommandPalette';
 
 interface ProtectedRouteProps {
   roles?: Role[];
@@ -31,6 +32,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ roles }) => {
           <Outlet />
         </main>
       </div>
+      <CommandPalette />
     </div>
   );
 };

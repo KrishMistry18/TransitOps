@@ -6,11 +6,13 @@ import {
   TableHead, TableBody, TableCell, StatusChip 
 } from '../components/ui';
 import { CheckCircle } from 'lucide-react';
+import { useDemo } from '../features/demo/DemoContext';
 
 type MaintenanceLogWithVehicle = MaintenanceLog & { vehicle: Vehicle };
 
 export default function Maintenance() {
   const { token, user } = useContext(AuthContext);
+  const { completeStep } = useDemo();
   const canEdit = user?.role === 'FLEET_MANAGER';
   const [logs, setLogs] = useState<MaintenanceLogWithVehicle[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -75,6 +77,7 @@ export default function Maintenance() {
         date: new Date().toISOString().split('T')[0]
       });
       fetchData();
+      completeStep('create-maintenance'); // Req 21.2 step 6
     } catch (err: any) {
       setError(err.message);
     } finally {

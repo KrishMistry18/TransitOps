@@ -1,14 +1,16 @@
 import React, { useContext } from 'react';
 import { NavLink } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { LayoutDashboard, Truck, Users, Map, Wrench, Fuel, BarChart3, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Truck, Users, Map, Wrench, Fuel, BarChart3, Settings, LogOut, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { cn } from './ui/utils';
 
 const NAV_ITEMS = [
   { name: 'Dashboard', path: '/', icon: LayoutDashboard },
   { name: 'Fleet', path: '/fleet', icon: Truck },
   { name: 'Drivers', path: '/drivers', icon: Users },
+  { name: 'Compliance', path: '/compliance', icon: ShieldCheck },
   { name: 'Trips', path: '/trips', icon: Map },
+  { name: 'Recovery', path: '/recovery', icon: ShieldAlert },
   { name: 'Maintenance', path: '/maintenance', icon: Wrench },
   { name: 'Fuel & Expenses', path: '/fuel', icon: Fuel },
   { name: 'Analytics', path: '/analytics', icon: BarChart3 },

@@ -16,7 +16,7 @@ export function StatusChip({ status, domain, className }: StatusChipProps) {
   // Determine color category based on status string
   let colorCategory = 'inshop'; // default grey
   
-  const greenStatuses = ['AVAILABLE', 'COMPLETED', 'SUCCESS', 'ACTIVE', 'FLEET_MANAGER', 'DISPATCHER', 'SAFETY_OFFICER', 'FINANCIAL_ANALYST'];
+  const greenStatuses = ['AVAILABLE', 'COMPLETED', 'SUCCESS', 'ACTIVE', 'FLEET_MANAGER', 'DRIVER', 'SAFETY_OFFICER', 'FINANCIAL_ANALYST'];
   const amberStatuses = ['ON TRIP', 'PENDING', 'DISPATCHED', 'IN PROGRESS'];
   const redStatuses = ['RETIRED', 'SUSPENDED', 'EXPIRED', 'CANCELLED'];
   const greyStatuses = ['IN SHOP', 'OFF DUTY', 'DRAFT', 'CLOSED'];

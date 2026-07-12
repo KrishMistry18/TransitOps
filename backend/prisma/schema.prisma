@@ -1,0 +1,207 @@
+// TransitOps — canonical unified data model (Prisma + MongoDB)
+// This schema is the single source of truth for the integrated platform.
+// Base folder: trip-fuel. Role model reconciled to requirements.md (DRIVER, not DISPATCHER).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
+}
+
+enum Role {
+  FLEET_MANAGER
+  DRIVER
+  SAFETY_OFFICER
+  FINANCIAL_ANALYST
+}
+
+model User {
+  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
+  email               String    @unique
+  passwordHash        String
+  name                String
+  role                Role
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  createdAt           DateTime  @default(now())
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  ON_TRIP
+  IN_SHOP
+  RETIRED
+}
+
+model Vehicle {
+  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
+  registrationNumber String        @unique
+  name               String
+  model              String?
+  type               String
+  maxLoadCapacity    Float
+  odometer           Float         @default(0)
+  acquisitionCost    Float
+  status             VehicleStatus @default(AVAILABLE)
+  region             String
+
+  trips           Trip[]
+  maintenanceLogs MaintenanceLog[]
+  fuelLogs        FuelLog[]
+  expenses        Expense[]
+  documents       VehicleDocument[]
+}
+
+// Req 20 — Vehicle document management
+model VehicleDocument {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  typeLabel  String
+  fileName   String
+  url        String
+  uploadedAt DateTime @default(now())
+
+  vehicleId String  @db.ObjectId
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+}
+
+enum DriverStatus {
+  AVAILABLE
+  ON_TRIP
+  OFF_DUTY
+  SUSPENDED
+}
+
+model Driver {
+  id                String       @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  licenseNumber     String       @unique
+  licenseCategory   String
+  licenseExpiryDate DateTime
+  contactNumber     String
+  safetyScore       Float        @default(100)
+  status            DriverStatus @default(AVAILABLE)
+
+  trips Trip[]
+}
+
+enum TripStatus {
+  DRAFT
+  DISPATCHED
+  COMPLETED
+  CANCELLED
+}
+
+model Trip {
+  id                String     @id @default(auto()) @map("_id") @db.ObjectId
+  source            String
+  sourceRegion      String?
+  destination       String
+  destinationRegion String?
+  cargoWeight       Float
+  plannedDistance   Float
+  actualDistance    Float?
+  fuelConsumed      Float?
+  revenue           Float?
+  status            TripStatus @default(DRAFT)
+  dispatchedAt      DateTime?
+  completedAt       DateTime?
+  cancelledAt       DateTime?
+
+  // Req 22 — disruption recovery flags
+  disrupted Boolean @default(false)
+  atRisk    Boolean @default(false)
+
+  vehicleId String  @db.ObjectId
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+  driverId  String  @db.ObjectId
+  driver    Driver  @relation(fields: [driverId], references: [id])
+
+  fuelLogs       FuelLog[]
+  recoveryAudits RecoveryAudit[]
+}
+
+enum MaintenanceStatus {
+  ACTIVE
+  CLOSED
+}
+
+model MaintenanceLog {
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
+  description String
+  cost        Float?
+  status      MaintenanceStatus @default(ACTIVE)
+  startDate   DateTime
+  endDate     DateTime?
+
+  vehicleId String  @db.ObjectId
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+}
+
+model FuelLog {
+  id     String   @id @default(auto()) @map("_id") @db.ObjectId
+  liters Float
+  cost   Float
+  date   DateTime
+
+  vehicleId String  @db.ObjectId
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+  tripId    String? @db.ObjectId
+  trip      Trip?   @relation(fields: [tripId], references: [id])
+
+  impliedEfficiency Float?
+  anomalyFlag       Boolean @default(false)
+  anomalyReason     String?
+}
+
+enum ExpenseType {
+  TOLL
+  MAINTENANCE
+  OTHER
+}
+
+model Expense {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  type        ExpenseType
+  amount      Float
+  description String?
+  date        DateTime
+
+  vehicleId String  @db.ObjectId
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+}
+
+enum DisruptionType {
+  VEHICLE_BREAKDOWN
+  EMERGENCY_MAINTENANCE
+  DRIVER_UNAVAILABLE
+}
+
+// Req 22.10 — audit trail for recovery reassignments
+model RecoveryAudit {
+  id                   String         @id @default(auto()) @map("_id") @db.ObjectId
+  tripId               String         @db.ObjectId
+  trip                 Trip           @relation(fields: [tripId], references: [id])
+  originalVehicleId    String?        @db.ObjectId
+  originalDriverId     String?        @db.ObjectId
+  replacementVehicleId String         @db.ObjectId
+  replacementDriverId  String         @db.ObjectId
+  disruptionType       DisruptionType
+  timestamp            DateTime       @default(now())
+}
+
+model DepotSettings {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  depotName    String
+  currency     String @default("USD")
+  distanceUnit String @default("km")
+
+  // Req 17 — trip cost estimator needs a configured fuel price
+  fuelPrice Float @default(1.5)
+
+  // Req 18 — license reminder configuration
+  licenseReminderWindowDays Int     @default(30)
+  emailRemindersEnabled     Boolean @default(false)
+}

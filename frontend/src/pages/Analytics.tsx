@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Card, Table, TableHeader, TableRow, TableHead, TableBody, TableCell, Button } from '../components/ui';
-import { Download, TrendingUp, DollarSign } from 'lucide-react';
+import { Download, TrendingUp, DollarSign, FileText } from 'lucide-react';
+import { useDemo } from '../features/demo/DemoContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 interface VehicleAnalytics {
@@ -18,6 +19,7 @@ interface VehicleAnalytics {
 
 export default function Analytics() {
   const { token, user } = useContext(AuthContext);
+  const { completeStep } = useDemo();
   const [data, setData] = useState<VehicleAnalytics[]>([]);
   const canView = user?.role === 'FINANCIAL_ANALYST' || user?.role === 'FLEET_MANAGER';
 
@@ -29,18 +31,24 @@ export default function Analytics() {
   };
 
   useEffect(() => {
-    if (token) fetchReport();
+    if (token) {
+      fetchReport();
+      completeStep('view-reports'); // Req 21.2 final step
+    }
   }, [token]);
 
-  const handleExport = async () => {
+  const download = async (path: string, filename: string) => {
     try {
-      const res = await fetch('http://localhost:5000/api/reports/vehicles/export', { headers });
-      if (!res.ok) throw new Error('Export failed');
+      const res = await fetch(`http://localhost:5000${path}`, { headers });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || 'Export failed');
+      }
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'vehicles_report.csv';
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -49,6 +57,9 @@ export default function Analytics() {
       console.error('Download failed', err);
     }
   };
+
+  const handleExportCSV = () => download('/api/reports/vehicles/export', 'vehicles_report.csv');
+  const handleExportPDF = () => download('/api/reports/vehicles/export-pdf', 'vehicles_report.pdf');
 
   if (!canView) {
     return (
@@ -79,9 +90,14 @@ export default function Analytics() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold text-white tracking-[0.02em]">Fleet Analytics</h2>
-        <Button icon={<Download size={16} />} onClick={handleExport} variant="outline">
-          Export CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button icon={<Download size={16} />} onClick={handleExportCSV} variant="secondary">
+            Export CSV
+          </Button>
+          <Button icon={<FileText size={16} />} onClick={handleExportPDF} variant="secondary">
+            Export PDF
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

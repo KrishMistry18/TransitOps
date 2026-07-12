@@ -5,13 +5,16 @@ It includes a fully functioning authentication system with role-based access con
 
 ## Prerequisites
 - Node.js 18+
-- Local MongoDB instance (or use MongoDB Atlas)
+- Local PostgreSQL instance (or use the provided docker-compose)
 
 ## Getting Started
 
 1. **Database Setup**
-   Ensure MongoDB is running locally on port 27017 or update `backend/.env` with your own MongoDB Atlas connection string.
-   > **Note:** MongoDB transactions require a replica set (Atlas satisfies this automatically).
+   Ensure PostgreSQL is running. If using Docker, run:
+   ```bash
+   docker compose up -d
+   ```
+   (Alternatively, update `backend/.env` with your own PostgreSQL connection string)
 
 2. **Install Dependencies**
    From the root directory:
@@ -24,8 +27,12 @@ It includes a fully functioning authentication system with role-based access con
    cd ../frontend && npm install
    ```
 
-3. **Database Seeding (Backend)**
-   Currently, we do not have an automated Mongoose seed script, but the controllers will create default settings on first load. Mongoose handles schema creation dynamically.
+3. **Database Migration and Seeding (Backend)**
+   ```bash
+   cd backend
+   npx prisma migrate dev --name init
+   npm run prisma seed
+   ```
 
 4. **Run the App**
    From the root directory (starts both frontend and backend concurrently if you set up concurrent scripts, or run them in separate terminals):
@@ -46,7 +53,7 @@ The database is seeded with 4 default users, one for each role. The password for
 | Role | Email |
 | :--- | :--- |
 | Fleet Manager | `fleet@transitops.com` |
-| Dispatcher | `dispatcher@transitops.com` |
+| Driver | `driver@transitops.com` |
 | Safety Officer | `safety@transitops.com` |
 | Financial Analyst | `finance@transitops.com` |
 
@@ -79,7 +86,7 @@ To avoid merge conflicts during the hackathon, please stick to your assigned dom
 - **Design System**: `frontend/src/components/ui/*` and `frontend/tailwind.config.ts`.
 - **Auth & Settings**: `backend/src/controllers/authController.ts`, `settingsController.ts`, `frontend/src/pages/Login.tsx`, `Settings.tsx`.
 - **App Shell & Layout**: `frontend/src/components/Sidebar.tsx`, `Topbar.tsx`, `ProtectedRoute.tsx`.
-- **Database Schema**: `backend/src/models/*` (Mongoose Schemas).
+- **Database Schema**: `backend/prisma/schema.prisma` (Contact Lead if you need schema changes).
 
 ### Stubbed (Replace with real logic)
 - **Feature Pages**: `frontend/src/pages/Dashboard.tsx`, `Fleet.tsx`, `Drivers.tsx`, `Trips.tsx`, `Maintenance.tsx`, `Fuel.tsx`, `Analytics.tsx`.

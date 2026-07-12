@@ -7,6 +7,9 @@ import {
 } from '../components/ui';
 import { Plus, Send, CheckCircle, XCircle, ChevronRight, AlertTriangle } from 'lucide-react';
 import { cn } from '../components/ui/utils';
+import EligibilityPanel from '../features/dispatch/EligibilityPanel';
+import CostEstimator from '../features/dispatch/CostEstimator';
+import { useDemo } from '../features/demo/DemoContext';
 
 type TripWithPopulated = Omit<Trip, 'vehicleId' | 'driverId'> & {
   vehicle?: Vehicle;
@@ -52,7 +55,8 @@ function TripStepper({ status }: { status: string }) {
 
 export default function Trips() {
   const { token, user } = useContext(AuthContext);
-  const canManage = user?.role === 'DISPATCHER' || user?.role === 'FLEET_MANAGER';
+  const { completeStep } = useDemo();
+  const canManage = user?.role === 'DRIVER'; // trips:full — Driver_Role (Req 2.7)
 
   const [trips, setTrips] = useState<TripWithPopulated[]>([]);
   const [availVehicles, setAvailVehicles] = useState<Vehicle[]>([]);
@@ -64,7 +68,7 @@ export default function Trips() {
 
   const [form, setForm] = useState({
     source: '', destination: '', vehicleId: '', driverId: '',
-    cargoWeight: '', plannedDistance: ''
+    cargoWeight: '', plannedDistance: '', expectedRevenue: ''
   });
   const [completeForm, setCompleteForm] = useState({ finalOdometer: '', fuelConsumed: '', actualDistance: '' });
 
@@ -106,8 +110,9 @@ export default function Trips() {
     const data = await res.json();
     if (!res.ok) return setError(data.message || 'Failed to create trip');
     setShowCreate(false);
-    setForm({ source: '', destination: '', vehicleId: '', driverId: '', cargoWeight: '', plannedDistance: '' });
+    setForm({ source: '', destination: '', vehicleId: '', driverId: '', cargoWeight: '', plannedDistance: '', expectedRevenue: '' });
     fetchTrips();
+    completeStep('create-trip'); // Req 21.2 step 3
   };
 
   const handleDispatch = async (tripId: string) => {
@@ -120,6 +125,7 @@ export default function Trips() {
     const data = await res.json();
     if (!res.ok) return setActionError(data.message || 'Failed to dispatch');
     fetchTrips();
+    completeStep('dispatch-trip'); // Req 21.2 step 4
   };
 
   const handleComplete = async (e: React.FormEvent) => {
@@ -140,6 +146,7 @@ export default function Trips() {
     setShowComplete(null);
     setCompleteForm({ finalOdometer: '', fuelConsumed: '', actualDistance: '' });
     fetchTrips();
+    completeStep('complete-trip'); // Req 21.2 step 5
   };
 
   const handleCancel = async (tripId: string) => {
@@ -357,7 +364,31 @@ export default function Trips() {
                 placeholder="300"
               />
             </div>
+            <div>
+              <label className="block text-[0.75rem] font-medium text-text-muted uppercase tracking-[0.04em] mb-1">Expected Revenue (₹, optional)</label>
+              <Input
+                type="number" min="0"
+                value={form.expectedRevenue}
+                onChange={e => setForm({ ...form, expectedRevenue: e.target.value })}
+                placeholder="1500"
+              />
+            </div>
           </div>
+
+          {/* Req 17 — cost & margin estimate */}
+          <CostEstimator
+            vehicleId={form.vehicleId || undefined}
+            plannedDistance={Number(form.plannedDistance) || undefined}
+            revenue={Number(form.expectedRevenue) || undefined}
+          />
+
+          {/* Req 16 — live eligibility panel */}
+          <EligibilityPanel
+            cargoWeight={Number(form.cargoWeight) || undefined}
+            vehicleId={form.vehicleId || undefined}
+            driverId={form.driverId || undefined}
+          />
+
           <div className="pt-2 flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setShowCreate(false)}>Cancel</Button>
             <Button type="submit">Save as Draft</Button>

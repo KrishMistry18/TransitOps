@@ -3,9 +3,12 @@ import { AuthContext } from '../context/AuthContext';
 import { PermissionsMatrix, FeaturePermissions } from '@shared/types';
 import { Card, Input, Select, Button, Table, TableHeader, TableRow, TableHead, TableBody, TableCell, StatusChip } from '../components/ui';
 import api from '../lib/api';
+import { useDemo } from '../features/demo/DemoContext';
+import { Sparkles } from 'lucide-react';
 
 export default function Settings() {
   const { user } = useContext(AuthContext);
+  const { active: demoActive, start: startDemo, isComplete: demoComplete } = useDemo();
   const [settings, setSettings] = useState({ depotName: '', currency: '', distanceUnit: '' });
   const [permissions, setPermissions] = useState<PermissionsMatrix | null>(null);
   const [saving, setSaving] = useState(false);
@@ -42,6 +45,20 @@ export default function Settings() {
         <h1 className="text-[1.5rem] font-display font-bold text-text-primary">Platform Settings</h1>
         <p className="text-text-muted text-[0.875rem] mt-1">Manage global depot preferences and view role permissions.</p>
       </div>
+
+      <Card>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-[1.125rem] font-display font-semibold text-text-primary">Guided Demo Mode</h3>
+            <p className="text-text-muted text-[0.875rem] mt-1">
+              Walk through register vehicle → register driver → create trip → dispatch → complete → maintenance → reports, in order (Req 21).
+            </p>
+          </div>
+          <Button icon={<Sparkles size={16} />} onClick={startDemo} disabled={demoActive}>
+            {demoActive ? (demoComplete ? 'Demo Complete' : 'Demo In Progress…') : 'Start Demo'}
+          </Button>
+        </div>
+      </Card>
 
       <Card accent="#8A93A3">
         <h3 className="text-[1.125rem] font-display font-semibold text-text-primary mb-6">General Configuration</h3>
