@@ -26,8 +26,10 @@ function App() {
             <Route path="/trips" element={<Trips />} />
             <Route path="/maintenance" element={<Maintenance />} />
             <Route path="/fuel" element={<Fuel />} />
-            <Route path="/analytics" element={<Analytics />} />
             <Route path="/settings" element={<Settings />} />
+          </Route>
+          <Route element={<ProtectedRoute roles={['FLEET_MANAGER', 'FINANCIAL_ANALYST', 'SAFETY_OFFICER']} />}>
+            <Route path="/analytics" element={<Analytics />} />
           </Route>
         </Routes>
       </Router>

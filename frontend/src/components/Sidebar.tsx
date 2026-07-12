@@ -16,7 +16,14 @@ const NAV_ITEMS = [
 ];
 
 export default function Sidebar() {
-  const { logout } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext);
+
+  const visibleItems = NAV_ITEMS.filter((item) => {
+    if (item.path === '/analytics') {
+      return user?.role && ['FLEET_MANAGER', 'FINANCIAL_ANALYST', 'SAFETY_OFFICER'].includes(user.role);
+    }
+    return true;
+  });
 
   return (
     <aside className="w-16 lg:w-[240px] shrink-0 bg-surface border-r border-border flex flex-col transition-all duration-300">
@@ -26,7 +33,7 @@ export default function Sidebar() {
       </div>
       <nav className="flex-1 py-6 overflow-y-auto">
         <ul className="space-y-1">
-          {NAV_ITEMS.map((item) => (
+          {visibleItems.map((item) => (
             <li key={item.name}>
               <NavLink
                 to={item.path}

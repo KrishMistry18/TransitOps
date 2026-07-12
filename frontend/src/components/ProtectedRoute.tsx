@@ -14,7 +14,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ roles }) => {
 
   if (loading) return <div className="p-10 text-center text-text-muted">Loading...</div>;
 
-  return user ? (
+  if (!user) return <Navigate to="/login" replace />;
+
+  if (roles && !roles.includes(user.role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return (
     <div className="flex h-screen overflow-hidden bg-bg">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
@@ -24,8 +30,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ roles }) => {
         </main>
       </div>
     </div>
-  ) : (
-    <Navigate to="/login" replace />
   );
 };
 
