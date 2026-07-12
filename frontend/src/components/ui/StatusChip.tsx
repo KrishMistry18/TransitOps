@@ -41,7 +41,7 @@ export function StatusChip({ status, domain, className }: StatusChipProps) {
       <span className="relative flex h-1.5 w-1.5 mr-1.5 items-center justify-center">
         {normalizedStatus === 'ON TRIP' && (
           <span className={cn(
-            "absolute inline-flex h-full w-full rounded-full opacity-75 motion-safe:animate-pulse-ring",
+            "absolute inline-flex h-full w-full rounded-full opacity-75 motion-safe:pulse-live",
             {
               "bg-status-available": colorCategory === 'available',
               "bg-status-pending": colorCategory === 'pending',
