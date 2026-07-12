@@ -34,10 +34,11 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
-      navigate('/');
+      const loggedInUser = await login(email, password);
+      navigate(loggedInUser.role === 'ADMIN' ? '/admin' : '/');
     } catch (err: any) {
-      setError(err.message || 'An error occurred during login');
+      const msg = err?.response?.data?.message || err?.message || 'An error occurred during login';
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
