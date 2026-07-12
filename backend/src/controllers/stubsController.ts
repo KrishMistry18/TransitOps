@@ -41,13 +41,11 @@ const mockDashboard: DashboardKPIs = {
 };
 
 export const getVehicles = (req: Request, res: Response) => res.json(mockVehicles);
-export const getAvailableVehicles = (req: Request, res: Response) => res.json(mockVehicles.filter(v => v.status === 'AVAILABLE'));
 export const createVehicle = (req: Request, res: Response) => res.json({ id: 99, ...req.body });
 export const updateVehicle = (req: Request, res: Response) => res.json({ id: req.params.id, ...req.body });
 export const deleteVehicle = (req: Request, res: Response) => { res.status(204).send(); };
 
 export const getDrivers = (req: Request, res: Response) => res.json(mockDrivers);
-export const getAvailableDrivers = (req: Request, res: Response) => res.json(mockDrivers.filter(d => d.status === 'AVAILABLE'));
 export const getExpiringLicenses = (req: Request, res: Response) => res.json(mockDrivers.filter(d => new Date(d.licenseExpiryDate) < new Date()));
 export const createDriver = (req: Request, res: Response) => res.json({ id: 99, ...req.body });
 export const updateDriver = (req: Request, res: Response) => res.json({ id: req.params.id, ...req.body });

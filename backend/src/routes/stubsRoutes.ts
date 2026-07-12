@@ -5,14 +5,12 @@ const router = express.Router();
 
 // Vehicles
 router.get('/vehicles', stubs.getVehicles);
-router.get('/vehicles/available', stubs.getAvailableVehicles);
 router.post('/vehicles', stubs.createVehicle);
 router.put('/vehicles/:id', stubs.updateVehicle);
 router.delete('/vehicles/:id', stubs.deleteVehicle);
 
 // Drivers
 router.get('/drivers', stubs.getDrivers);
-router.get('/drivers/available', stubs.getAvailableDrivers);
 router.get('/drivers/expiring-licenses', stubs.getExpiringLicenses);
 router.post('/drivers', stubs.createDriver);
 router.put('/drivers/:id', stubs.updateDriver);
