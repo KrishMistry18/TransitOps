@@ -59,14 +59,33 @@ The database is seeded with 4 default users, one for each role. The password for
 
 > Note: The account will lock for 15 minutes after 5 failed login attempts.
 
+## Design System (Frontend)
+
+To keep the TransitOps application looking consistent, we have implemented a shared design system based on `design.md`. **Do not use arbitrary hex codes or create new UI components unless absolutely necessary.**
+
+### Core Components (`@/components/ui`)
+All teammates should use the following exported components:
+- **Button**: Handles variants (`primary`, `secondary`, `danger`, `ghost`) and sizes.
+- **Card**: Standard rounded, bordered container. Pass `accent="#hex"` to add a top colored border for specific modules.
+- **KPICard**: Pre-built widget for dashboard metrics with `Trend` arrows.
+- **StatusChip**: **CRITICAL**. Use this for all statuses. It accepts a `status` prop and maps it to the correct color (Available/Pending/In Shop/Danger). Never build a one-off colored badge.
+- **Table**: Modular table wrapper with `TableHeader`, `TableRow`, etc. Use `TableCell mono` for ID columns.
+- **Input & Select**: Styled form fields with proper focus states.
+- **Modal**: Pre-styled dialog wrapper with backdrop and escape-key handling.
+
+### Styling Conventions
+- **Colors**: Use Tailwind theme colors (`bg-bg`, `text-primary`, `bg-surface`, `border-border`).
+- **Typography**: `font-display` (Space Grotesk) for headings/KPIs, `font-mono` (JetBrains Mono) for data, and `font-body` (Inter) for everything else.
+
 ## Code Ownership & Status
 
 To avoid merge conflicts during the hackathon, please stick to your assigned domains:
 
 ### Fully Implemented (Do not modify unless you are Lead)
-- **Shared Types**: `shared/types.ts` is the single source of truth for all data shapes in the app. Use the `@shared/*` alias when importing (e.g. `import { Vehicle } from '@shared/types';`).
+- **Shared Types**: `shared/types.ts` is the single source of truth for all data shapes in the app. Use the `@shared/*` alias when importing.
+- **Design System**: `frontend/src/components/ui/*` and `frontend/tailwind.config.ts`.
 - **Auth & Settings**: `backend/src/controllers/authController.ts`, `settingsController.ts`, `frontend/src/pages/Login.tsx`, `Settings.tsx`.
-- **App Shell & Layout**: `frontend/src/components/Sidebar.tsx`, `ProtectedRoute.tsx`.
+- **App Shell & Layout**: `frontend/src/components/Sidebar.tsx`, `Topbar.tsx`, `ProtectedRoute.tsx`.
 - **Database Schema**: `backend/prisma/schema.prisma` (Contact Lead if you need schema changes).
 
 ### Stubbed (Replace with real logic)

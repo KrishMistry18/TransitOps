@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { PermissionsMatrix, FeaturePermissions } from '@shared/types';
+import { Card, Input, Select, Button, Table, TableHeader, TableRow, TableHead, TableBody, TableCell, StatusChip } from '../components/ui';
 
 export default function Settings() {
   const { token, user } = useContext(AuthContext);
@@ -42,21 +43,24 @@ export default function Settings() {
   };
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
+    <div className="max-w-5xl space-y-8">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Platform Settings</h2>
-        <p className="text-gray-500 text-sm mt-1">Manage global depot preferences and view role permissions.</p>
+        <h1 className="text-[1.5rem] font-display font-bold text-text-primary">Platform Settings</h1>
+        <p className="text-text-muted text-[0.875rem] mt-1">Manage global depot preferences and view role permissions.</p>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">General Configuration</h3>
-        <form onSubmit={handleSave} className="space-y-4 max-w-md">
-          {message && <div className="text-sm font-medium text-blue-600">{message}</div>}
+      <Card accent="#8A93A3">
+        <h3 className="text-[1.125rem] font-display font-semibold text-text-primary mb-6">General Configuration</h3>
+        <form onSubmit={handleSave} className="space-y-6 max-w-md">
+          {message && (
+            <div className="text-[0.875rem] font-medium text-status-available bg-status-available/10 p-3 rounded-[6px]">
+              {message}
+            </div>
+          )}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Depot Name</label>
-            <input
+            <label className="block text-[0.75rem] font-medium text-text-muted uppercase tracking-[0.04em] mb-1">Depot Name</label>
+            <Input
               type="text"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 focus:ring-blue-500 focus:border-blue-500"
               value={settings.depotName}
               onChange={e => setSettings({ ...settings, depotName: e.target.value })}
               disabled={user?.role !== 'FLEET_MANAGER'}
@@ -64,9 +68,8 @@ export default function Settings() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Currency</label>
-              <select
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 focus:ring-blue-500 focus:border-blue-500"
+              <label className="block text-[0.75rem] font-medium text-text-muted uppercase tracking-[0.04em] mb-1">Currency</label>
+              <Select
                 value={settings.currency}
                 onChange={e => setSettings({ ...settings, currency: e.target.value })}
                 disabled={user?.role !== 'FLEET_MANAGER'}
@@ -74,74 +77,70 @@ export default function Settings() {
                 <option value="USD">USD ($)</option>
                 <option value="EUR">EUR (€)</option>
                 <option value="GBP">GBP (£)</option>
-              </select>
+              </Select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Distance Unit</label>
-              <select
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 focus:ring-blue-500 focus:border-blue-500"
+              <label className="block text-[0.75rem] font-medium text-text-muted uppercase tracking-[0.04em] mb-1">Distance Unit</label>
+              <Select
                 value={settings.distanceUnit}
                 onChange={e => setSettings({ ...settings, distanceUnit: e.target.value })}
                 disabled={user?.role !== 'FLEET_MANAGER'}
               >
                 <option value="km">Kilometers (km)</option>
                 <option value="mi">Miles (mi)</option>
-              </select>
+              </Select>
             </div>
           </div>
           {user?.role === 'FLEET_MANAGER' && (
-            <button
+            <Button
               type="submit"
               disabled={saving}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
             >
-              {saving ? 'Saving...' : 'Save Changes'}
-            </button>
+              {saving ? 'Saving...' : 'Save changes'}
+            </Button>
           )}
         </form>
-      </div>
+      </Card>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Role-Based Access Control (RBAC) Matrix</h3>
+      <Card>
+        <h3 className="text-[1.125rem] font-display font-semibold text-text-primary mb-6">Role-Based Access Control (RBAC) Matrix</h3>
         {permissions ? (
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead>
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-500 bg-gray-50">Feature / Module</th>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Feature / Module</TableHead>
                 {Object.keys(permissions).map(role => (
-                  <th key={role} className="px-4 py-3 text-center font-medium text-gray-500 bg-gray-50">
+                  <TableHead key={role} className="text-center">
                     {role.replace('_', ' ')}
-                  </th>
+                  </TableHead>
                 ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {['fleet', 'drivers', 'trips', 'fuelExp', 'analytics'].map(feature => (
-                <tr key={feature}>
-                  <td className="px-4 py-3 font-medium text-gray-900 capitalize">
+                <TableRow key={feature}>
+                  <TableCell className="font-medium capitalize">
                     {feature === 'fuelExp' ? 'Fuel & Expenses' : feature}
-                  </td>
+                  </TableCell>
                   {Object.keys(permissions).map(role => {
                     const access = permissions[role][feature as keyof FeaturePermissions];
                     return (
-                      <td key={`${role}-${feature}`} className="px-4 py-3 text-center">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize
-                          ${access === 'full' ? 'bg-green-100 text-green-800' :
-                            access === 'view' ? 'bg-blue-100 text-blue-800' :
-                            'bg-gray-100 text-gray-800'}`}>
-                          {access}
-                        </span>
-                      </td>
+                      <TableCell key={`${role}-${feature}`} className="text-center">
+                        <StatusChip 
+                          status={access} 
+                          domain="role" 
+                        />
+                      </TableCell>
                     );
                   })}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         ) : (
-          <div className="text-sm text-gray-500">Loading matrix...</div>
+          <div className="text-[0.875rem] text-text-muted">Loading matrix...</div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
+import { Card, Input, Select, Button } from '../components/ui';
 
 export default function Login() {
   const { login, user } = useContext(AuthContext);
@@ -27,27 +28,32 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-100">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-bg py-12 px-4 sm:px-6 lg:px-8">
+      <div className="mb-8">
+        <h1 className="text-text-primary font-display font-bold text-3xl tracking-wide text-center">TransitOps</h1>
+      </div>
+      <Card className="max-w-md w-full shadow-modal">
         <div>
-          <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to TransitOps
+          <h2 className="text-center text-[1.5rem] font-display font-bold text-text-primary">
+            Sign in
           </h2>
+          <p className="mt-2 text-center text-[0.875rem] text-text-muted">
+            Access the control center
+          </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
+            <div className="bg-status-danger/10 border border-status-danger/30 p-4 rounded-[6px]">
               <div className="flex items-center">
-                <AlertCircle className="h-5 w-5 text-red-400 mr-2" />
-                <p className="text-sm text-red-700">{error}</p>
+                <AlertCircle className="h-5 w-5 text-status-danger mr-2 shrink-0" />
+                <p className="text-sm text-status-danger font-medium">{error}</p>
               </div>
             </div>
           )}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Role (Cosmetic)</label>
-              <select
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border"
+              <label className="block text-[0.75rem] font-medium text-text-muted uppercase tracking-[0.04em] mb-1">Role (Cosmetic)</label>
+              <Select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
               >
@@ -55,25 +61,23 @@ export default function Login() {
                 <option value="DISPATCHER">Dispatcher</option>
                 <option value="SAFETY_OFFICER">Safety Officer</option>
                 <option value="FINANCIAL_ANALYST">Financial Analyst</option>
-              </select>
+              </Select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Email address</label>
-              <input
+              <label className="block text-[0.75rem] font-medium text-text-muted uppercase tracking-[0.04em] mb-1">Email address</label>
+              <Input
                 type="email"
                 required
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm mt-1"
                 placeholder="dispatcher@transitops.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Password</label>
-              <input
+              <label className="block text-[0.75rem] font-medium text-text-muted uppercase tracking-[0.04em] mb-1">Password</label>
+              <Input
                 type="password"
                 required
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm mt-1"
                 placeholder="password123"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -86,30 +90,28 @@ export default function Login() {
               <input
                 id="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-accent-primary focus:ring-accent-primary border-border bg-surface-raised rounded"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-text-muted">
                 Remember me
               </label>
             </div>
             <div className="text-sm">
-              <button type="button" disabled className="font-medium text-blue-600 hover:text-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+              <button type="button" disabled className="font-medium text-accent-primary hover:text-accent-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 Forgot your password?
               </button>
             </div>
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full"
+          >
+            {loading ? 'Signing in...' : 'Sign in'}
+          </Button>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

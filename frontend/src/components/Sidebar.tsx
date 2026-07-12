@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { NavLink } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { LayoutDashboard, Truck, Users, Map, Wrench, Fuel, BarChart3, Settings, LogOut } from 'lucide-react';
+import { cn } from './ui/utils';
 
 const NAV_ITEMS = [
   { name: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -15,46 +16,45 @@ const NAV_ITEMS = [
 ];
 
 export default function Sidebar() {
-  const { user, logout } = useContext(AuthContext);
+  const { logout } = useContext(AuthContext);
 
   return (
-    <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col">
-      <div className="p-4 bg-slate-950 flex flex-col">
-        <h1 className="text-white font-bold text-xl tracking-wide">TransitOps</h1>
-        <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider">{user?.role}</p>
+    <aside className="w-16 lg:w-[240px] shrink-0 bg-surface border-r border-border flex flex-col transition-all duration-300">
+      <div className="h-[64px] flex items-center justify-center lg:justify-start lg:px-6 border-b border-border shrink-0">
+        <h1 className="text-text-primary font-display font-bold text-xl hidden lg:block tracking-wide">TransitOps</h1>
+        <div className="lg:hidden font-display font-bold text-accent-primary text-xl">TO</div>
       </div>
-      <nav className="flex-1 py-4">
-        <ul className="space-y-1 px-2">
+      <nav className="flex-1 py-6 overflow-y-auto">
+        <ul className="space-y-1">
           {NAV_ITEMS.map((item) => (
             <li key={item.name}>
               <NavLink
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center px-4 py-2 rounded-md transition-colors ${
-                    isActive ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-white'
-                  }`
+                  cn(
+                    "flex items-center h-12 lg:px-6 px-0 justify-center lg:justify-start transition-colors border-l-[3px]",
+                    isActive 
+                      ? "border-accent-primary bg-accent-primary/10 text-accent-primary" 
+                      : "border-transparent text-text-muted hover:text-text-primary hover:bg-surface-raised"
+                  )
                 }
+                title={item.name}
               >
-                <item.icon className="w-5 h-5 mr-3" />
-                {item.name}
+                <item.icon className="w-5 h-5 lg:mr-3 shrink-0" />
+                <span className="hidden lg:inline text-sm font-medium">{item.name}</span>
               </NavLink>
             </li>
           ))}
         </ul>
       </nav>
-      <div className="p-4 border-t border-slate-800">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex flex-col truncate">
-            <span className="text-sm font-medium text-white truncate">{user?.name}</span>
-            <span className="text-xs text-slate-400 truncate">{user?.email}</span>
-          </div>
-        </div>
+      <div className="p-4 border-t border-border">
         <button
           onClick={logout}
-          className="flex items-center w-full px-4 py-2 text-sm rounded-md text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+          className="flex items-center justify-center lg:justify-start w-full h-10 lg:px-4 rounded-[6px] text-text-muted hover:bg-surface-raised hover:text-text-primary transition-colors focus:outline-none focus:ring-[2px] focus:ring-accent-primary"
+          title="Sign Out"
         >
-          <LogOut className="w-4 h-4 mr-3" />
-          Sign Out
+          <LogOut className="w-5 h-5 lg:mr-3 shrink-0" />
+          <span className="hidden lg:inline text-sm font-medium">Sign Out</span>
         </button>
       </div>
     </aside>
