@@ -19,6 +19,12 @@ import vehicleRoutes from './routes/vehicle.routes';
 import driverRoutes from './routes/driver.routes';
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/drivers', driverRoutes);
+
+import dashboardRoutes from './routes/dashboardRoutes';
+import analyticsRoutes from './routes/analyticsRoutes';
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/analytics', analyticsRoutes);
+
 app.use('/api', stubsRoutes); // all other routes on /api prefix
 
 app.get('/health', (req, res) => {
