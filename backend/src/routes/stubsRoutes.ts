@@ -17,9 +17,7 @@ router.put('/drivers/:id', stubs.updateDriver);
 router.delete('/drivers/:id', stubs.deleteDriver);
 
 // Maintenance
-router.get('/maintenance', stubs.getMaintenance);
-router.post('/maintenance', stubs.createMaintenance);
-router.post('/maintenance/:id/close', stubs.closeMaintenance);
+// Moved to real routes
 
 // Trips
 router.get('/trips', stubs.getTrips);

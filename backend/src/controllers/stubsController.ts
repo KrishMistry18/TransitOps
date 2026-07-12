@@ -51,10 +51,6 @@ export const createDriver = (req: Request, res: Response) => res.json({ id: 99, 
 export const updateDriver = (req: Request, res: Response) => res.json({ id: req.params.id, ...req.body });
 export const deleteDriver = (req: Request, res: Response) => { res.status(204).send(); };
 
-export const getMaintenance = (req: Request, res: Response) => res.json(mockMaintenance);
-export const createMaintenance = (req: Request, res: Response) => res.json({ id: 99, ...req.body });
-export const closeMaintenance = (req: Request, res: Response) => res.json({ id: req.params.id, status: 'CLOSED' });
-
 export const getTrips = (req: Request, res: Response) => res.json(mockTrips);
 export const createTrip = (req: Request, res: Response) => res.json({ id: 99, ...req.body });
 export const dispatchTrip = (req: Request, res: Response) => res.json({ id: req.params.id, status: 'DISPATCHED' });
