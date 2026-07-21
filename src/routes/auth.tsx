@@ -1,10 +1,12 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signOut as fbSignOut,
   updateProfile,
+  type User,
 } from "firebase/auth";
 import { ref, set, get } from "firebase/database";
 import { auth, rtdb, googleProvider } from "@/integrations/firebase/client";
@@ -16,7 +18,7 @@ import {
   ShieldCheck,
   Mail,
   Lock,
-  User,
+  User as UserIcon,
   ArrowRight,
   Truck,
   LineChart,
@@ -55,11 +57,21 @@ function AuthPage() {
   const [role, setRole] = useState<AppRole>("driver");
   const [loading, setLoading] = useState(false);
 
+  // ── Google first-time role-selection state ──
+  const [googleUser, setGoogleUser] = useState<User | null>(null);
+  const [googleRole, setGoogleRole] = useState<AppRole>("driver");
+  const [googleSaving, setGoogleSaving] = useState(false);
+  // Ref-based guard: prevents onAuthStateChanged auto-redirect while we're
+  // waiting for the user to pick a role in the modal.
+  const skipAutoNavRef = useRef(false);
+
   // Detect if the typed email is the admin email
   const isAdminEmail = email.trim().toLowerCase() === ADMIN_EMAIL;
 
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged((u) => { if (u) navigate({ to: "/" }); });
+    const unsub = auth.onAuthStateChanged((u) => {
+      if (u && !skipAutoNavRef.current) navigate({ to: "/" });
+    });
     return () => unsub();
   }, [navigate]);
 
@@ -116,24 +128,72 @@ function AuthPage() {
       toast.error("Admin must sign in with email and password.");
       return;
     }
+    // Block the auto-nav effect until we know whether this is a first-time
+    // Google user (needs role) or a returning user (should proceed).
+    skipAutoNavRef.current = true;
     try {
       const cred = await signInWithPopup(auth, googleProvider);
-      // For Google sign-in: only write profile if it doesn't exist yet
-      const snap = await get(ref(rtdb, `user_profiles/${cred.user.uid}`));
-      if (!snap.exists()) {
-        await set(ref(rtdb, `user_profiles/${cred.user.uid}`), {
-          uid: cred.user.uid,
-          email: cred.user.email,
-          display_name: cred.user.displayName,
-          roles: ["driver"],
-          status: "pending",
-          created_at: new Date().toISOString(),
-        });
+
+      // Admin can never enter through Google — force sign-out and abort.
+      if (cred.user.email?.toLowerCase() === ADMIN_EMAIL) {
+        await fbSignOut(auth);
+        skipAutoNavRef.current = false;
+        toast.error("Admin must sign in with email and password.");
+        return;
       }
-      navigate({ to: "/" });
+
+      const snap = await get(ref(rtdb, `user_profiles/${cred.user.uid}`));
+      if (snap.exists()) {
+        // Returning user — role/status already set. Let routing take over.
+        skipAutoNavRef.current = false;
+        toast.success("Welcome back");
+        navigate({ to: "/" });
+        return;
+      }
+
+      // First-time Google user — open the role picker. Keep skipAutoNavRef true
+      // so the auto-nav effect doesn't fire while the modal is open.
+      setGoogleRole("driver");
+      setGoogleUser(cred.user);
     } catch (err: any) {
+      skipAutoNavRef.current = false;
       toast.error(err.message ?? "Google sign-in failed");
     }
+  }
+
+  // Save role + status:pending for a first-time Google user, then redirect
+  // through the app root so the pending screen picks them up (same as signup).
+  async function confirmGoogleRole() {
+    if (!googleUser) return;
+    setGoogleSaving(true);
+    try {
+      await set(ref(rtdb, `user_profiles/${googleUser.uid}`), {
+        uid: googleUser.uid,
+        email: googleUser.email,
+        display_name: googleUser.displayName,
+        roles: [googleRole],
+        status: "pending",
+        created_at: new Date().toISOString(),
+      });
+      toast.success("Account created — awaiting admin approval.");
+      setGoogleUser(null);
+      skipAutoNavRef.current = false;
+      navigate({ to: "/" });
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to save role");
+    } finally {
+      setGoogleSaving(false);
+    }
+  }
+
+  // If the user cancels the role picker, sign them out so we don't leave a
+  // Firebase-authenticated user without a profile.
+  async function cancelGoogleRole() {
+    try {
+      await fbSignOut(auth);
+    } catch { /* noop */ }
+    setGoogleUser(null);
+    skipAutoNavRef.current = false;
   }
 
   function switchMode(m: AuthMode) {
@@ -144,10 +204,18 @@ function AuthPage() {
     setRole("driver");
   }
 
+  function fillAdminDemo() {
+    // Admin can only sign in, never sign up
+    setMode("signin");
+    setEmail(ADMIN_EMAIL);
+    setPassword("Admin@123");
+    toast.info("Admin credentials filled in — press Sign in.");
+  }
+
   return (
-    <div className="min-h-screen grid lg:grid-cols-[1.05fr_1fr] bg-background overflow-hidden">
+    <div className="min-h-screen grid lg:grid-cols-[1.05fr_1fr] bg-background">
       {/* ─────────────────────────  LEFT PANEL  ───────────────────────── */}
-      <div className="relative hidden lg:flex flex-col p-14 xl:p-20 bg-paper border-r border-line overflow-hidden">
+      <div className="relative hidden lg:flex flex-col p-14 xl:p-20 bg-paper border-r border-line overflow-hidden lg:sticky lg:top-0 lg:h-screen">
         {/* ── Ambient background stack ── */}
         {/* Aurora sweep */}
         <div
@@ -210,26 +278,10 @@ function AuthPage() {
           }}
         />
 
-        {/* ── Content grid: brand · hero · footer ── */}
+        {/* ── Content: hero only, vertically centred ── */}
         <div className="relative flex flex-col h-full min-h-0">
-          {/* Brand */}
-          <Link to="/" className="flex items-center gap-3 group w-fit">
-            <div className="relative">
-              <div className="absolute -inset-1 rounded-lg bg-accent/30 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative h-11 w-11 rounded-md bg-ink text-background grid place-items-center font-display text-xl shadow-lg shadow-ink/20 ring-1 ring-ink/60">
-                T
-              </div>
-            </div>
-            <div>
-              <div className="font-display text-2xl leading-none">TransitOps</div>
-              <div className="mt-1 text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
-                Logistics Command
-              </div>
-            </div>
-          </Link>
-
           {/* Hero — vertically centred, generously spaced */}
-          <div className="flex-1 flex flex-col justify-center max-w-lg py-16">
+          <div className="flex-1 flex flex-col justify-center max-w-lg">
             <div className="inline-flex items-center gap-2 mb-8 px-3 py-1 rounded-full border border-line bg-background/70 backdrop-blur-sm w-fit">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-accent opacity-70 animate-ping" />
@@ -262,10 +314,15 @@ function AuthPage() {
               in a single, decision-grade console. Powered by Firebase.
             </p>
 
-            {/* Admin demo card */}
-            <div className="relative mt-12 max-w-md">
-              <div className="absolute -inset-px rounded-xl bg-gradient-to-br from-accent/40 via-transparent to-ink/20 opacity-70 blur-[1px]" />
-              <div className="relative p-5 border border-line rounded-xl bg-background/85 backdrop-blur-sm shadow-sm">
+            {/* Admin demo card — click to autofill credentials */}
+            <button
+              type="button"
+              onClick={fillAdminDemo}
+              className="group relative mt-12 max-w-md text-left cursor-pointer"
+              aria-label="Fill admin demo credentials"
+            >
+              <div className="absolute -inset-px rounded-xl bg-gradient-to-br from-accent/40 via-transparent to-ink/20 opacity-70 blur-[1px] transition-opacity group-hover:opacity-100" />
+              <div className="relative p-5 border border-line rounded-xl bg-background/85 backdrop-blur-sm shadow-sm transition-all group-hover:border-line-strong group-hover:-translate-y-0.5">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="h-6 w-6 rounded-md bg-ink/90 text-background grid place-items-center">
                     <ShieldCheck className="h-3.5 w-3.5" />
@@ -273,8 +330,9 @@ function AuthPage() {
                   <span className="text-[10px] font-semibold uppercase tracking-[0.22em]">
                     Admin Demo
                   </span>
-                  <span className="ml-auto text-[10px] uppercase tracking-widest text-accent">
+                  <span className="ml-auto inline-flex items-center gap-1 text-[10px] uppercase tracking-widest text-accent">
                     Try it
+                    <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                   </span>
                 </div>
                 <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-xs">
@@ -284,22 +342,13 @@ function AuthPage() {
                   <span className="font-mono text-foreground">Admin@123</span>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
-            <span>TransitOps · v3.0</span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-1 w-1 rounded-full bg-success" />
-              Systems nominal
-            </span>
+            </button>
           </div>
         </div>
       </div>
 
       {/* ─────────────────────────  RIGHT PANEL  ───────────────────────── */}
-      <div className="relative flex items-center justify-center p-6 sm:p-10 lg:p-12">
+      <div className="relative flex items-center justify-center px-4 py-10 sm:px-6 sm:py-14 lg:p-12 min-h-screen lg:min-h-0">
         {/* Ambient background on mobile / right side */}
         <div
           className="absolute inset-0 pointer-events-none opacity-70"
@@ -374,7 +423,7 @@ function AuthPage() {
                       Full name
                     </Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="name"
                         value={name}
@@ -518,27 +567,150 @@ function AuthPage() {
               </div>
             </form>
 
-            {/* Footer switch */}
-            <div className="mt-7 pt-5 border-t border-line text-center text-xs text-muted-foreground">
-              {mode === "signin" ? "New to TransitOps?" : "Already have an account?"}{" "}
-              <button
-                type="button"
-                className="font-medium text-foreground underline-offset-4 hover:underline hover:text-accent transition-colors"
-                onClick={() => switchMode(mode === "signin" ? "signup" : "signin")}
-              >
-                {mode === "signin" ? "Create an account" : "Sign in instead"}
-              </button>
+            {/* Footer switch + legal — kept inside the card */}
+            <div className="mt-7 pt-5 border-t border-line space-y-3 text-center">
+              <div className="text-xs text-muted-foreground">
+                {mode === "signin" ? "New to TransitOps?" : "Already have an account?"}{" "}
+                <button
+                  type="button"
+                  className="font-medium text-foreground underline-offset-4 hover:underline hover:text-accent transition-colors"
+                  onClick={() => switchMode(mode === "signin" ? "signup" : "signin")}
+                >
+                  {mode === "signin" ? "Create an account" : "Sign in instead"}
+                </button>
+              </div>
+              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                By continuing you agree to our{" "}
+                <span className="underline underline-offset-2">Terms</span> and{" "}
+                <span className="underline underline-offset-2">Privacy Policy</span>.
+              </p>
             </div>
           </div>
-
-          {/* Legal micro-copy */}
-          <p className="relative mt-5 text-center text-[11px] leading-relaxed text-muted-foreground">
-            By continuing you agree to our{" "}
-            <span className="underline underline-offset-2">Terms</span> and{" "}
-            <span className="underline underline-offset-2">Privacy Policy</span>.
-          </p>
         </div>
       </div>
+
+      {/* ───────────  GOOGLE FIRST-TIME ROLE PICKER (modal)  ─────────── */}
+      {googleUser && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="google-role-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm"
+        >
+          <div className="relative w-full max-w-md">
+            {/* Halo */}
+            <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-accent/40 via-line to-ink/10 opacity-90" />
+            <div className="relative rounded-2xl bg-background border border-line shadow-[0_30px_80px_-24px_rgba(0,0,0,0.35)] p-7">
+              <div className="mb-5">
+                <div className="inline-flex items-center gap-2 mb-2 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                  <Sparkles className="h-3 w-3 text-accent" />
+                  One more step
+                </div>
+                <h3 id="google-role-title" className="font-display text-2xl leading-tight tracking-tight">
+                  Choose your role
+                </h3>
+                <p className="mt-1.5 text-sm text-muted-foreground">
+                  Welcome{googleUser.displayName ? `, ${googleUser.displayName.split(" ")[0]}` : ""}.
+                  Pick the role that best fits your work. New accounts require admin approval.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 mb-6">
+                {SIGNUP_ROLES.map((r) => {
+                  const active = googleRole === r.value;
+                  const Icon = r.icon;
+                  return (
+                    <button
+                      key={r.value}
+                      type="button"
+                      onClick={() => setGoogleRole(r.value)}
+                      disabled={googleSaving}
+                      className={`group relative text-left px-4 py-3 rounded-lg border transition-all overflow-hidden ${
+                        active
+                          ? "border-ink bg-ink text-background shadow-md shadow-ink/10"
+                          : "border-line bg-paper/40 hover:bg-paper hover:border-line-strong"
+                      }`}
+                    >
+                      {active && (
+                        <span
+                          className="pointer-events-none absolute inset-0 opacity-40"
+                          style={{
+                            background:
+                              "radial-gradient(60% 100% at 100% 50%, color-mix(in oklab, var(--accent) 55%, transparent), transparent 60%)",
+                          }}
+                        />
+                      )}
+                      <div className="relative flex items-center gap-3">
+                        <div
+                          className={`h-8 w-8 rounded-md grid place-items-center shrink-0 ${
+                            active
+                              ? "bg-background/15 text-accent ring-1 ring-background/20"
+                              : "bg-muted text-ink-soft"
+                          }`}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium leading-tight">{r.label}</div>
+                          <div
+                            className={`text-[11px] mt-0.5 ${
+                              active ? "text-background/70" : "text-muted-foreground"
+                            }`}
+                          >
+                            {r.description}
+                          </div>
+                        </div>
+                        <div
+                          className={`ml-auto h-4 w-4 rounded-full border shrink-0 transition-all ${
+                            active
+                              ? "border-background bg-accent"
+                              : "border-line group-hover:border-line-strong"
+                          }`}
+                        />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  className="h-10 px-4"
+                  onClick={cancelGoogleRole}
+                  disabled={googleSaving}
+                  type="button"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="h-10 flex-1 group"
+                  onClick={confirmGoogleRole}
+                  disabled={googleSaving}
+                  type="button"
+                >
+                  {googleSaving ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-full border-2 border-background/40 border-t-background animate-spin" />
+                      Saving
+                    </span>
+                  ) : (
+                    <>
+                      Request access
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground text-center">
+                Signed in as{" "}
+                <span className="font-mono text-foreground">{googleUser.email}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

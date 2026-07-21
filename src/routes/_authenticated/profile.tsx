@@ -50,7 +50,7 @@ function Profile() {
   const initials = (name || user?.email || "U").split(/\s+/).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
 
   return (
-    <div className="px-6 py-8 max-w-4xl">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-4xl">
       <SectionHeader eyebrow="Account" title="Your profile" description="Manage identity, credentials, and roles." />
       <div className="grid gap-5 md:grid-cols-[240px_minmax(0,1fr)]">
         <Panel className="p-6 text-center">

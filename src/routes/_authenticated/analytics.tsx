@@ -41,7 +41,7 @@ function Analytics() {
   const topDrivers = [...D].sort((a, b) => b.safety_score - a.safety_score).slice(0, 5);
 
   return (
-    <div className="px-6 py-8 max-w-[1600px]">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-[1600px]">
       <SectionHeader
         eyebrow="Intelligence" title="Analytics"
         description="Revenue, cost, utilisation and driver performance."

@@ -4,11 +4,11 @@ export function StatCard({
   label, value, delta, sub, accent,
 }: { label: string; value: ReactNode; delta?: string; sub?: string; accent?: boolean }) {
   return (
-    <div className={`relative p-5 border border-line bg-card rounded-lg ${accent ? "ring-1 ring-accent/40" : ""}`}>
+    <div className={`relative p-4 sm:p-5 border border-line bg-card rounded-lg ${accent ? "ring-1 ring-accent/40" : ""}`}>
       <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{label}</div>
-      <div className="mt-3 font-display text-4xl leading-none tabular">{value}</div>
-      <div className="mt-3 flex items-baseline justify-between">
-        <span className="text-xs text-muted-foreground">{sub}</span>
+      <div className="mt-2 sm:mt-3 font-display text-3xl sm:text-4xl leading-none tabular">{value}</div>
+      <div className="mt-2 sm:mt-3 flex items-baseline justify-between gap-2">
+        <span className="text-xs text-muted-foreground truncate">{sub}</span>
         {delta && (
           <span className={`text-xs tabular ${delta.startsWith("-") ? "text-destructive" : "text-success"}`}>
             {delta}
@@ -52,7 +52,7 @@ export function SectionHeader({
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 sm:flex sm:items-end sm:justify-between mb-6">
       <div className="min-w-0">
         {eyebrow && <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground mb-2">{eyebrow}</div>}
-        <h2 className="font-display text-3xl leading-tight">{title}</h2>
+        <h2 className="font-display text-2xl sm:text-3xl leading-tight">{title}</h2>
         {description && <p className="text-sm text-muted-foreground mt-1 max-w-xl">{description}</p>}
       </div>
       {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}

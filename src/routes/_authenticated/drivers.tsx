@@ -70,7 +70,7 @@ function Drivers() {
   }, [data, search, filters]);
 
   return (
-    <div className="px-6 py-8 max-w-[1600px]">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-[1600px]">
       <SectionHeader
         eyebrow="People" title="Driver roster"
         description="Certifications, safety scores and current duty state."

@@ -88,7 +88,7 @@ function Audit() {
   ];
 
   return (
-    <div className="px-6 py-8 max-w-[1600px]">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-[1600px]">
       <SectionHeader
         eyebrow="Compliance" title="Audit log"
         description="Every create, edit, and delete across core tables — with the actor and payload."

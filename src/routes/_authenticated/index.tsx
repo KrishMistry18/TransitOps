@@ -75,14 +75,14 @@ function AdminOverview() {
   const totalRevenue = T.filter(t => t.revenue).reduce((s, t) => s + (t.revenue ?? 0), 0);
 
   return (
-    <div className="px-6 py-8 max-w-[1600px] space-y-8">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-[1600px] space-y-6 sm:space-y-8">
       {/* Hero */}
-      <div className="relative overflow-hidden border border-line rounded-xl bg-paper p-8 grid-lines">
+      <div className="relative overflow-hidden border border-line rounded-xl bg-paper p-5 sm:p-8 grid-lines">
         <div className="relative">
           <div className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground mb-2">
             Admin · {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
           </div>
-          <h1 className="font-display text-5xl leading-[0.95] mb-3">
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl leading-[1.05] sm:leading-[0.95] mb-3">
             System command<br /><span className="text-accent">centre.</span>
           </h1>
           <p className="text-sm text-ink-soft">Full governance view — fleet, users, finances, and compliance in one place.</p>
@@ -177,15 +177,15 @@ function ManagerOverview() {
   const expiringLicenses = D.filter(d => new Date(d.license_expiry_date) < new Date(Date.now() + 90 * 24 * 3600 * 1000));
 
   return (
-    <div className="px-6 py-8 max-w-[1600px] space-y-8">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-[1600px] space-y-6 sm:space-y-8">
       {/* Hero */}
-      <div className="relative overflow-hidden border border-line rounded-xl bg-paper p-8 grid-lines">
+      <div className="relative overflow-hidden border border-line rounded-xl bg-paper p-5 sm:p-8 grid-lines">
         <div className="relative grid gap-6 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] items-end">
           <div>
             <div className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground mb-2">
               Fleet Ops · {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
             </div>
-            <h1 className="font-display text-5xl leading-[0.95] mb-3">
+            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl leading-[1.05] sm:leading-[0.95] mb-3">
               Every asset accounted for,<br /><span className="text-accent">every kilometre earned.</span>
             </h1>
             <p className="text-sm text-ink-soft">
@@ -327,14 +327,14 @@ function FinancialOverview() {
   }));
 
   return (
-    <div className="px-6 py-8 max-w-[1600px] space-y-8">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-[1600px] space-y-6 sm:space-y-8">
       {/* Hero */}
-      <div className="relative overflow-hidden border border-line rounded-xl bg-paper p-8 grid-lines">
+      <div className="relative overflow-hidden border border-line rounded-xl bg-paper p-5 sm:p-8 grid-lines">
         <div className="relative">
           <div className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground mb-2">
             Financial · {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
           </div>
-          <h1 className="font-display text-5xl leading-[0.95] mb-3">
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl leading-[1.05] sm:leading-[0.95] mb-3">
             Financial performance<br /><span className="text-accent">at a glance.</span>
           </h1>
           <p className="text-sm text-ink-soft">
@@ -445,14 +445,14 @@ function DriverOverview() {
   const name = displayName ?? user?.email?.split("@")[0] ?? "Driver";
 
   return (
-    <div className="px-6 py-8 max-w-[1600px] space-y-8">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-[1600px] space-y-6 sm:space-y-8">
       {/* Hero */}
-      <div className="relative overflow-hidden border border-line rounded-xl bg-paper p-8 grid-lines">
+      <div className="relative overflow-hidden border border-line rounded-xl bg-paper p-5 sm:p-8 grid-lines">
         <div className="relative">
           <div className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground mb-2">
             Driver Portal · {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
           </div>
-          <h1 className="font-display text-5xl leading-[0.95] mb-3">
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl leading-[1.05] sm:leading-[0.95] mb-3">
             Good shift, <span className="text-accent">{name}.</span>
           </h1>
           <p className="text-sm text-ink-soft">

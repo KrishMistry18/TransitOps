@@ -60,7 +60,7 @@ function Maintenance() {
   ];
 
   return (
-    <div className="px-6 py-8 max-w-[1600px]">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-[1600px]">
       <SectionHeader
         eyebrow="Service" title="Maintenance ledger"
         description="Every workshop event, cost recorded, downtime accounted."
