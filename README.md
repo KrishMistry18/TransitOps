@@ -1,112 +1,121 @@
-# TransitOps — Logistics & Fleet Command Surface
+<div align="center">
 
-TransitOps is a real-time fleet management, driver operations, and dispatch intelligence platform built for modern logistics teams.
+# 🚛 TransitOps
 
----
+**Logistics & Fleet Command Surface**
 
-## 🚀 Key Features
+[![Live Demo](https://img.shields.io/badge/🔗_Live_Demo-transitops.vercel.app-0070f3?style=for-the-badge)](https://transit-ops-mu-liard.vercel.app)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-- **Fleet Register (`/fleet`)**: Track vehicle assets, model specifications, region assignment, load capacity, odometer readings, and lifecycle status (`AVAILABLE`, `ON_TRIP`, `IN_SHOP`, `RETIRED`).
-- **Driver Operations (`/drivers`)**: Manage driver registries, license categories (`HGV`, `MGV`, `LGV`), license expiry tracking, contact details, and safety scores.
-- **Dispatch & Trip Management (`/trips`)**: Plan and monitor trip lifecycles from draft to completion, including origin/destination regions, cargo weight, distance, and revenue tracking.
-- **Fuel Intelligence (`/fuel`)**: Record fuel refill logs, monitor efficiency, calculate fuel costs, and flag efficiency anomalies automatically.
-- **Maintenance Logs (`/maintenance`)**: Track scheduled service events, repair descriptions, cost records, and maintenance statuses.
-- **Analytics & Audit (`/analytics`, `/audit`)**: Real-time performance dashboards and complete audit logging for configuration and data modifications.
-- **Role-Based Access Control (RBAC) & Approvals (`/users`)**: 
-  - Gated write operations for Admin and Fleet Manager accounts.
-  - New registration approval workflow managed directly by Admins.
-- **Data Import & Export**:
-  - Bulk CSV import with column header validation and automatic field transformation.
-  - One-click CSV and PDF export across all operational tables.
+*TransitOps is a real-time fleet management, driver operations, and dispatch intelligence platform built for modern logistics teams.*
+
+</div>
 
 ---
 
-## 🛠️ Tech Stack
+## ✨ What It Does
 
-- **Framework**: React 19 + TypeScript
-- **Routing & State**: TanStack Router & TanStack Query
-- **Styling**: Tailwind CSS + Shadcn UI primitives
-- **Database & Authentication**: Firebase Auth + Firebase Realtime Database (RTDB)
-- **Charts & Reports**: Recharts, jsPDF, PapaParse
+TransitOps is a comprehensive logistics dashboard that pulls together fleet tracking, driver operations, and dispatch management into a single real-time interface:
+
+- **Fleet Register** — Track vehicle assets, model specifications, region assignment, load capacity, and lifecycle status.
+- **Driver Operations** — Manage driver registries, license categories, expiry tracking, and safety scores.
+- **Dispatch & Trip Management** — Plan and monitor trip lifecycles from draft to completion, tracking origin/destination, cargo weight, and revenue.
+- **Fuel Intelligence** — Record fuel logs, monitor efficiency, calculate costs, and flag anomalies automatically.
+- **Maintenance Logs** — Track scheduled service events, repair descriptions, and cost records.
+- **Analytics & Audit** — Real-time performance dashboards and complete audit logging for configuration changes.
+- **Role-Based Access Control** — Gated write operations and new registration approval workflow managed directly by Admins.
+- **Data Import & Export** — Bulk CSV import with validation and one-click CSV/PDF export.
 
 ---
 
-## 🔑 Environment Variables
+## 🛠️ Tech Stack Used
 
-To run the project locally or in production, configure the following Firebase environment variables:
+| Layer | Technology |
+|---|---|
+| Framework | React 19 |
+| Language | TypeScript |
+| Routing | TanStack Router |
+| State/Data Fetching | TanStack Query |
+| Styling | Tailwind CSS v4 + Shadcn UI |
+| Database | Firebase Realtime Database (RTDB) |
+| Authentication | Firebase Auth |
+| Charts | Recharts |
+| Reports | jsPDF, PapaParse |
+| Deployment | Vercel |
 
-```env
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-VITE_FIREBASE_DATABASE_URL=https://your_project-default-rtdb.firebaseio.com
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- [Firebase](https://firebase.google.com) project (RTDB and Auth enabled)
+
+### 1. Clone & Install
+
+```bash
+git clone https://github.com/KrishMistry18/TransitOps.git
+cd TransitOps
+npm install
+```
+
+### 2. Environment Variables
+
+```bash
+cp .env.example .env
+```
+
+Fill in your keys from `.env.example` (Firebase config).
+
+### 3. Run Dev Server
+
+```bash
+npm run dev
+# Open http://localhost:5173
+```
+
+### 4. Seed Initial Data (Optional)
+
+You can run these scripts to create a default admin and seed the database with mock operational records:
+
+```bash
+node setup-admin.mjs
+node seed-data.mjs
 ```
 
 ---
 
-## 💻 Local Development
+## 📁 Project Structure
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/Dan-ex-hub/TransitOps.git
-   cd TransitOps
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-
-3. **Configure Environment**:
-   Create a `.env` file in the root directory using the template above.
-
-4. **Seed Database (Optional)**:
-   ```bash
-   node setup-admin.mjs   # Creates default admin account
-   node seed-data.mjs     # Seeds fleet, drivers, trips, fuel, and maintenance records
-   ```
-
-5. **Start Development Server**:
-   ```bash
-   npm run dev
-   ```
-   Open `http://localhost:5173` in your browser.
+```text
+src/
+├── components/       # Reusable UI components (Shadcn UI)
+├── hooks/            # Custom React hooks
+├── integrations/     # Third-party integrations
+├── lib/              # Utility functions and Firebase config
+├── routes/           # TanStack Router page components
+├── styles.css        # Global Tailwind CSS
+├── router.tsx        # Router configuration
+└── start.ts          # App entry point
+```
 
 ---
 
-## 🌐 Vercel Deployment Guide
+## ⚙️ Vercel Deployment
 
-TransitOps is optimized out-of-the-box for seamless deployment on **Vercel**.
+TransitOps is optimized out-of-the-box for seamless deployment on **Vercel** with Nitro auto-detect.
 
-### Step 1: Import Project to Vercel
 1. Log in to your [Vercel Dashboard](https://vercel.com).
 2. Click **Add New...** → **Project**.
-3. Select and import the `TransitOps` GitHub repository.
-
-### Step 2: Configure Environment Variables
-In the Vercel project settings during import (or under **Settings > Environment Variables**), add your Firebase keys:
-
-- `VITE_FIREBASE_API_KEY`
-- `VITE_FIREBASE_AUTH_DOMAIN`
-- `VITE_FIREBASE_DATABASE_URL`
-- `VITE_FIREBASE_PROJECT_ID`
-- `VITE_FIREBASE_STORAGE_BUCKET`
-- `VITE_FIREBASE_MESSAGING_SENDER_ID`
-- `VITE_FIREBASE_APP_ID`
-
-### Step 3: Build & Deploy
-Vercel automatically detects the configuration:
-- **Framework Preset**: Vite / Other
-- **Build Command**: `npm run build`
-- **Output Directory**: `dist/client`
-
-Click **Deploy**. Vercel will build and launch your application instantly.
+3. Import the `TransitOps` GitHub repository.
+4. Add your Firebase `VITE_FIREBASE_*` keys in the Environment Variables section.
+5. Click **Deploy**. Vercel will automatically build the `.vercel/output` and launch your application instantly.
 
 ---
 
 ## 📄 License
 
-Distributed under the MIT License. See `LICENSE` for details.
+MIT © [Krish Mistry](https://github.com/KrishMistry18)
