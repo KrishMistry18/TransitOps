@@ -215,7 +215,7 @@ function AuthPage() {
   return (
     <div className="min-h-screen grid lg:grid-cols-[1.05fr_1fr] bg-background">
       {/* ─────────────────────────  LEFT PANEL  ───────────────────────── */}
-      <div className="relative hidden lg:flex flex-col p-14 xl:p-20 bg-paper border-r border-line overflow-hidden lg:sticky lg:top-0 lg:h-screen">
+      <div className="relative flex flex-col px-5 py-10 sm:p-10 lg:p-14 xl:p-20 bg-paper border-b border-line lg:border-b-0 lg:border-r overflow-hidden lg:sticky lg:top-0 lg:h-screen">
         {/* ── Ambient background stack ── */}
         {/* Aurora sweep */}
         <div
@@ -282,7 +282,7 @@ function AuthPage() {
         <div className="relative flex flex-col h-full min-h-0">
           {/* Hero — vertically centred, generously spaced */}
           <div className="flex-1 flex flex-col justify-center max-w-lg">
-            <div className="inline-flex items-center gap-2 mb-8 px-3 py-1 rounded-full border border-line bg-background/70 backdrop-blur-sm w-fit">
+            <div className="inline-flex items-center gap-2 mb-5 sm:mb-8 px-3 py-1 rounded-full border border-line bg-background/70 backdrop-blur-sm w-fit">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-accent opacity-70 animate-ping" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
@@ -292,7 +292,7 @@ function AuthPage() {
               </span>
             </div>
 
-            <h1 className="font-display text-[3.25rem] xl:text-[3.75rem] leading-[1.02] tracking-tight mb-6">
+            <h1 className="font-display text-4xl sm:text-[3rem] lg:text-[3.25rem] xl:text-[3.75rem] leading-[1.08] sm:leading-[1.02] tracking-tight mb-4 sm:mb-6">
               Every asset accounted for.
               <br />
               <span className="relative inline-block mt-1">
@@ -305,11 +305,11 @@ function AuthPage() {
                 >
                   Every kilometre earned.
                 </span>
-                <span className="absolute -bottom-3 left-0 h-[3px] w-24 rounded-full bg-accent/80" />
+                <span className="absolute -bottom-2 sm:-bottom-3 left-0 h-[3px] w-16 sm:w-24 rounded-full bg-accent/80" />
               </span>
             </h1>
 
-            <p className="text-[15px] leading-relaxed text-muted-foreground max-w-md mt-4">
+            <p className="text-sm sm:text-[15px] leading-relaxed text-muted-foreground max-w-md mt-3 sm:mt-4">
               Fleet, dispatch, fuel and maintenance intelligence — orchestrated
               in a single, decision-grade console. Powered by Firebase.
             </p>
@@ -318,11 +318,11 @@ function AuthPage() {
             <button
               type="button"
               onClick={fillAdminDemo}
-              className="group relative mt-12 max-w-md text-left cursor-pointer"
+              className="group relative mt-8 sm:mt-12 max-w-md text-left cursor-pointer"
               aria-label="Fill admin demo credentials"
             >
               <div className="absolute -inset-px rounded-xl bg-gradient-to-br from-accent/40 via-transparent to-ink/20 opacity-70 blur-[1px] transition-opacity group-hover:opacity-100" />
-              <div className="relative p-5 border border-line rounded-xl bg-background/85 backdrop-blur-sm shadow-sm transition-all group-hover:border-line-strong group-hover:-translate-y-0.5">
+              <div className="relative p-4 sm:p-5 border border-line rounded-xl bg-background/85 backdrop-blur-sm shadow-sm transition-all group-hover:border-line-strong group-hover:-translate-y-0.5">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="h-6 w-6 rounded-md bg-ink/90 text-background grid place-items-center">
                     <ShieldCheck className="h-3.5 w-3.5" />
@@ -348,7 +348,7 @@ function AuthPage() {
       </div>
 
       {/* ─────────────────────────  RIGHT PANEL  ───────────────────────── */}
-      <div className="relative flex items-center justify-center px-4 py-10 sm:px-6 sm:py-14 lg:p-12 min-h-screen lg:min-h-0">
+      <div className="relative flex items-center justify-center px-4 py-10 sm:px-6 sm:py-14 lg:p-12">
         {/* Ambient background on mobile / right side */}
         <div
           className="absolute inset-0 pointer-events-none opacity-70"
