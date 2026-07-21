@@ -12,7 +12,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ShieldCheck } from "lucide-react";
+import {
+  ShieldCheck,
+  Mail,
+  Lock,
+  User,
+  ArrowRight,
+  Truck,
+  LineChart,
+  BadgeCheck,
+  Sparkles,
+} from "lucide-react";
 import type { AppRole } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/auth")({
@@ -23,10 +33,15 @@ export const Route = createFileRoute("/auth")({
 // The only admin account — cannot be created via sign-up
 export const ADMIN_EMAIL = "admin@transitops.com";
 
-const SIGNUP_ROLES: { label: string; value: AppRole; description: string }[] = [
-  { label: "Driver", value: "driver", description: "Assigned trips & compliance" },
-  { label: "Fleet Manager", value: "fleet_manager", description: "Full fleet & dispatch control" },
-  { label: "Financial Analyst", value: "financial_analyst", description: "Revenue, cost & fuel insights" },
+const SIGNUP_ROLES: {
+  label: string;
+  value: AppRole;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
+  { label: "Driver", value: "driver", description: "Assigned trips & compliance", icon: BadgeCheck },
+  { label: "Fleet Manager", value: "fleet_manager", description: "Full fleet & dispatch control", icon: Truck },
+  { label: "Financial Analyst", value: "financial_analyst", description: "Revenue, cost & fuel insights", icon: LineChart },
 ];
 
 type AuthMode = "signin" | "signup";
@@ -130,166 +145,398 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-background">
-      {/* Left panel */}
-      <div className="hidden lg:flex flex-col justify-between p-12 bg-paper border-r border-line grid-lines">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-md bg-ink text-background grid place-items-center font-display text-xl">T</div>
-          <div>
-            <div className="font-display text-2xl">TransitOps</div>
-            <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Logistics Command</div>
-          </div>
-        </Link>
-        <div>
-          <h1 className="font-display text-5xl leading-tight mb-4">
-            Every asset accounted for.<br />
-            <span className="text-accent">Every kilometre earned.</span>
-          </h1>
-          <p className="text-sm text-muted-foreground max-w-md">
-            Fleet, dispatch, fuel and maintenance intelligence — powered by Firebase.
-          </p>
-          <div className="mt-8 p-4 border border-line rounded-lg bg-background/50">
-            <div className="flex items-center gap-2 mb-2">
-              <ShieldCheck className="h-4 w-4 text-accent" />
-              <span className="text-xs font-medium uppercase tracking-widest">Admin Demo</span>
-            </div>
-            <div className="text-xs text-muted-foreground space-y-0.5">
-              <div>Email: <span className="font-mono text-foreground">{ADMIN_EMAIL}</span></div>
-              <div>Password: <span className="font-mono text-foreground">Admin@123</span></div>
-            </div>
-          </div>
-        </div>
-        <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">TransitOps · v3.0</div>
-      </div>
+    <div className="min-h-screen grid lg:grid-cols-[1.05fr_1fr] bg-background overflow-hidden">
+      {/* ─────────────────────────  LEFT PANEL  ───────────────────────── */}
+      <div className="relative hidden lg:flex flex-col p-14 xl:p-20 bg-paper border-r border-line overflow-hidden">
+        {/* ── Ambient background stack ── */}
+        {/* Aurora sweep */}
+        <div
+          className="absolute -top-[30%] -left-[20%] h-[160%] w-[140%] pointer-events-none opacity-[0.55]"
+          style={{
+            background:
+              "conic-gradient(from 210deg at 50% 50%, transparent 0deg, color-mix(in oklab, var(--accent) 22%, transparent) 60deg, transparent 140deg, color-mix(in oklab, var(--ink) 14%, transparent) 220deg, transparent 300deg)",
+            filter: "blur(60px)",
+            animation: "ambient-aurora 22s ease-in-out infinite",
+          }}
+        />
+        {/* Primary accent orb */}
+        <div
+          className="absolute -top-40 -left-24 h-[520px] w-[520px] rounded-full blur-3xl pointer-events-none"
+          style={{
+            background: "radial-gradient(closest-side, var(--accent), transparent 70%)",
+            animation: "ambient-breathe 14s ease-in-out infinite",
+          }}
+        />
+        {/* Ink orb */}
+        <div
+          className="absolute -bottom-48 -right-24 h-[560px] w-[560px] rounded-full blur-3xl pointer-events-none opacity-30"
+          style={{
+            background: "radial-gradient(closest-side, var(--ink), transparent 70%)",
+            animation: "ambient-drift 26s ease-in-out infinite",
+          }}
+        />
+        {/* Small warm highlight */}
+        <div
+          className="absolute top-1/3 right-[-6rem] h-[280px] w-[280px] rounded-full blur-3xl pointer-events-none opacity-40"
+          style={{
+            background:
+              "radial-gradient(closest-side, color-mix(in oklab, var(--accent) 70%, var(--paper)), transparent 70%)",
+            animation: "ambient-breathe 18s ease-in-out infinite 3s",
+          }}
+        />
+        {/* Diagonal sheen */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-40"
+          style={{
+            background:
+              "linear-gradient(135deg, transparent 0%, color-mix(in oklab, var(--background) 30%, transparent) 55%, transparent 100%)",
+          }}
+        />
+        {/* Subtle noise veil */}
+        <div
+          className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-[0.22]"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10  0 0 0 0 0.10  0 0 0 0 0.10  0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+            backgroundSize: "220px 220px",
+          }}
+        />
+        {/* Vignette focus */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(130% 90% at 50% 45%, transparent 40%, color-mix(in oklab, var(--background) 55%, transparent) 100%)",
+          }}
+        />
 
-      {/* Right panel */}
-      <div className="flex items-center justify-center p-6 sm:p-12">
-        <div className="w-full max-w-sm">
-          <div className="mb-8">
-            <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground mb-2">
-              {mode === "signin" ? "Return to console" : "Request access"}
+        {/* ── Content grid: brand · hero · footer ── */}
+        <div className="relative flex flex-col h-full min-h-0">
+          {/* Brand */}
+          <Link to="/" className="flex items-center gap-3 group w-fit">
+            <div className="relative">
+              <div className="absolute -inset-1 rounded-lg bg-accent/30 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative h-11 w-11 rounded-md bg-ink text-background grid place-items-center font-display text-xl shadow-lg shadow-ink/20 ring-1 ring-ink/60">
+                T
+              </div>
             </div>
-            <h2 className="font-display text-3xl">
-              {mode === "signin" ? "Sign in" : "Create account"}
-            </h2>
-            {mode === "signup" && (
-              <p className="text-sm text-muted-foreground mt-1">
-                New accounts require admin approval before access is granted.
-              </p>
-            )}
-          </div>
+            <div>
+              <div className="font-display text-2xl leading-none">TransitOps</div>
+              <div className="mt-1 text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+                Logistics Command
+              </div>
+            </div>
+          </Link>
 
-          {/* Google — hidden when admin email is typed */}
-          {!isAdminEmail && (
-            <>
-              <Button variant="outline" className="w-full h-10 mb-4" onClick={onGoogle} type="button">
-                <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                Continue with Google
-              </Button>
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-line" /></div>
-                <div className="relative flex justify-center text-[10px] uppercase tracking-[0.2em]">
-                  <span className="bg-background px-2 text-muted-foreground">or</span>
+          {/* Hero — vertically centred, generously spaced */}
+          <div className="flex-1 flex flex-col justify-center max-w-lg py-16">
+            <div className="inline-flex items-center gap-2 mb-8 px-3 py-1 rounded-full border border-line bg-background/70 backdrop-blur-sm w-fit">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-accent opacity-70 animate-ping" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+              </span>
+              <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                Live · Fleet Intelligence
+              </span>
+            </div>
+
+            <h1 className="font-display text-[3.25rem] xl:text-[3.75rem] leading-[1.02] tracking-tight mb-6">
+              Every asset accounted for.
+              <br />
+              <span className="relative inline-block mt-1">
+                <span
+                  className="bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(115deg, var(--accent) 0%, color-mix(in oklab, var(--accent) 65%, var(--ink)) 100%)",
+                  }}
+                >
+                  Every kilometre earned.
+                </span>
+                <span className="absolute -bottom-3 left-0 h-[3px] w-24 rounded-full bg-accent/80" />
+              </span>
+            </h1>
+
+            <p className="text-[15px] leading-relaxed text-muted-foreground max-w-md mt-4">
+              Fleet, dispatch, fuel and maintenance intelligence — orchestrated
+              in a single, decision-grade console. Powered by Firebase.
+            </p>
+
+            {/* Admin demo card */}
+            <div className="relative mt-12 max-w-md">
+              <div className="absolute -inset-px rounded-xl bg-gradient-to-br from-accent/40 via-transparent to-ink/20 opacity-70 blur-[1px]" />
+              <div className="relative p-5 border border-line rounded-xl bg-background/85 backdrop-blur-sm shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="h-6 w-6 rounded-md bg-ink/90 text-background grid place-items-center">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                  </div>
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.22em]">
+                    Admin Demo
+                  </span>
+                  <span className="ml-auto text-[10px] uppercase tracking-widest text-accent">
+                    Try it
+                  </span>
+                </div>
+                <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-xs">
+                  <span className="text-muted-foreground">Email</span>
+                  <span className="font-mono text-foreground truncate">{ADMIN_EMAIL}</span>
+                  <span className="text-muted-foreground">Password</span>
+                  <span className="font-mono text-foreground">Admin@123</span>
                 </div>
               </div>
-            </>
-          )}
-
-          {isAdminEmail && mode === "signup" && (
-            <div className="mb-4 p-3 rounded-md border border-destructive/30 bg-destructive/5 text-sm text-destructive">
-              Admin accounts cannot be created here. Please sign in instead.
             </div>
-          )}
+          </div>
 
-          <form onSubmit={onSubmit} className="space-y-3">
-            {mode === "signup" && !isAdminEmail && (
+          {/* Footer */}
+          <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+            <span>TransitOps · v3.0</span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-1 w-1 rounded-full bg-success" />
+              Systems nominal
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ─────────────────────────  RIGHT PANEL  ───────────────────────── */}
+      <div className="relative flex items-center justify-center p-6 sm:p-10 lg:p-12">
+        {/* Ambient background on mobile / right side */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-70"
+          style={{
+            background:
+              "radial-gradient(60% 40% at 80% 0%, color-mix(in oklab, var(--accent) 12%, transparent), transparent 70%), radial-gradient(50% 40% at 0% 100%, color-mix(in oklab, var(--ink) 8%, transparent), transparent 70%)",
+          }}
+        />
+
+        <div className="relative w-full max-w-md">
+          {/* Card halo */}
+          <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-accent/30 via-line to-ink/10 opacity-80" />
+          <div className="relative rounded-2xl bg-background border border-line shadow-[0_1px_0_0_rgba(0,0,0,0.02),0_20px_60px_-24px_rgba(0,0,0,0.18)] p-7 sm:p-8">
+            {/* Header */}
+            <div className="mb-7">
+              <div className="inline-flex items-center gap-2 mb-3 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                <Sparkles className="h-3 w-3 text-accent" />
+                {mode === "signin" ? "Return to console" : "Request access"}
+              </div>
+              <h2 className="font-display text-[2rem] leading-tight tracking-tight">
+                {mode === "signin" ? "Welcome back" : "Create your account"}
+              </h2>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                {mode === "signin"
+                  ? "Sign in to pick up where you left off."
+                  : "New accounts require admin approval before access is granted."}
+              </p>
+            </div>
+
+            {/* Google — hidden when admin email is typed */}
+            {!isAdminEmail && (
               <>
-                {/* Display name */}
-                <div>
-                  <Label htmlFor="name">Full name</Label>
-                  <Input
-                    id="name"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    placeholder="e.g. Ravi Kapadia"
-                    autoComplete="name"
-                  />
-                </div>
-
-                {/* Role selector — 3 cards */}
-                <div>
-                  <Label className="mb-2 block">Role</Label>
-                  <div className="grid grid-cols-1 gap-2">
-                    {SIGNUP_ROLES.map((r) => (
-                      <button
-                        key={r.value}
-                        type="button"
-                        onClick={() => setRole(r.value)}
-                        className={`text-left px-4 py-3 rounded-md border transition-all ${
-                          role === r.value
-                            ? "border-ink bg-ink text-background"
-                            : "border-line bg-background hover:bg-muted"
-                        }`}
-                      >
-                        <div className="text-sm font-medium">{r.label}</div>
-                        <div className={`text-[11px] mt-0.5 ${role === r.value ? "text-background/70" : "text-muted-foreground"}`}>
-                          {r.description}
-                        </div>
-                      </button>
-                    ))}
+                <Button
+                  variant="outline"
+                  className="w-full h-11 font-medium border-line hover:border-line-strong bg-paper/40 hover:bg-paper transition-all"
+                  onClick={onGoogle}
+                  type="button"
+                >
+                  <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  Continue with Google
+                </Button>
+                <div className="relative my-5">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-line" />
+                  </div>
+                  <div className="relative flex justify-center text-[10px] uppercase tracking-[0.22em]">
+                    <span className="bg-background px-3 text-muted-foreground">
+                      or continue with email
+                    </span>
                   </div>
                 </div>
               </>
             )}
 
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                autoComplete="email"
-                placeholder={mode === "signup" ? "you@example.com" : ""}
-              />
-            </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                autoComplete={mode === "signin" ? "current-password" : "new-password"}
-              />
-            </div>
+            {isAdminEmail && mode === "signup" && (
+              <div className="mb-4 p-3 rounded-md border border-destructive/30 bg-destructive/5 text-sm text-destructive">
+                Admin accounts cannot be created here. Please sign in instead.
+              </div>
+            )}
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loading || (mode === "signup" && isAdminEmail)}
-            >
-              {loading ? "…" : mode === "signin" ? "Sign in" : "Request access"}
-            </Button>
-          </form>
+            <form onSubmit={onSubmit} className="space-y-4">
+              {mode === "signup" && !isAdminEmail && (
+                <>
+                  {/* Display name */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="name" className="text-xs uppercase tracking-widest text-muted-foreground">
+                      Full name
+                    </Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="name"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        placeholder="e.g. Ravi Kapadia"
+                        autoComplete="name"
+                        className="h-11 pl-9 bg-paper/40"
+                      />
+                    </div>
+                  </div>
 
-          <div className="mt-6 text-center text-xs text-muted-foreground">
-            {mode === "signin" ? "New here?" : "Already have an account?"}{" "}
-            <button
-              className="underline hover:text-foreground"
-              onClick={() => switchMode(mode === "signin" ? "signup" : "signin")}
-            >
-              {mode === "signin" ? "Create an account" : "Sign in instead"}
-            </button>
+                  {/* Role selector — 3 premium cards */}
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-widest text-muted-foreground">
+                      Choose your role
+                    </Label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {SIGNUP_ROLES.map((r) => {
+                        const active = role === r.value;
+                        const Icon = r.icon;
+                        return (
+                          <button
+                            key={r.value}
+                            type="button"
+                            onClick={() => setRole(r.value)}
+                            className={`group relative text-left px-4 py-3 rounded-lg border transition-all overflow-hidden ${
+                              active
+                                ? "border-ink bg-ink text-background shadow-md shadow-ink/10"
+                                : "border-line bg-paper/40 hover:bg-paper hover:border-line-strong"
+                            }`}
+                          >
+                            {active && (
+                              <span
+                                className="pointer-events-none absolute inset-0 opacity-40"
+                                style={{
+                                  background:
+                                    "radial-gradient(60% 100% at 100% 50%, color-mix(in oklab, var(--accent) 55%, transparent), transparent 60%)",
+                                }}
+                              />
+                            )}
+                            <div className="relative flex items-center gap-3">
+                              <div
+                                className={`h-8 w-8 rounded-md grid place-items-center shrink-0 ${
+                                  active
+                                    ? "bg-background/15 text-accent ring-1 ring-background/20"
+                                    : "bg-muted text-ink-soft"
+                                }`}
+                              >
+                                <Icon className="h-4 w-4" />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="text-sm font-medium leading-tight">{r.label}</div>
+                                <div
+                                  className={`text-[11px] mt-0.5 ${
+                                    active ? "text-background/70" : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {r.description}
+                                </div>
+                              </div>
+                              <div
+                                className={`ml-auto h-4 w-4 rounded-full border shrink-0 transition-all ${
+                                  active
+                                    ? "border-background bg-accent"
+                                    : "border-line group-hover:border-line-strong"
+                                }`}
+                              />
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-xs uppercase tracking-widest text-muted-foreground">
+                  Email address
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    autoComplete="email"
+                    placeholder="you@company.com"
+                    className="h-11 pl-9 bg-paper/40"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-xs uppercase tracking-widest text-muted-foreground">
+                    Password
+                  </Label>
+                  {mode === "signin" && (
+                    <span className="text-[11px] text-muted-foreground">Min. 6 characters</span>
+                  )}
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                    placeholder="••••••••"
+                    className="h-11 pl-9 bg-paper/40"
+                  />
+                </div>
+              </div>
+
+              {/* Submit with accent glow */}
+              <div className="relative pt-1">
+                <div className="absolute inset-x-4 -bottom-1 h-4 rounded-full bg-accent/25 blur-xl opacity-70" />
+                <Button
+                  type="submit"
+                  className="relative w-full h-11 font-medium group"
+                  disabled={loading || (mode === "signup" && isAdminEmail)}
+                >
+                  {loading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-full border-2 border-background/40 border-t-background animate-spin" />
+                      Processing
+                    </span>
+                  ) : (
+                    <>
+                      {mode === "signin" ? "Sign in to console" : "Request access"}
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+
+            {/* Footer switch */}
+            <div className="mt-7 pt-5 border-t border-line text-center text-xs text-muted-foreground">
+              {mode === "signin" ? "New to TransitOps?" : "Already have an account?"}{" "}
+              <button
+                type="button"
+                className="font-medium text-foreground underline-offset-4 hover:underline hover:text-accent transition-colors"
+                onClick={() => switchMode(mode === "signin" ? "signup" : "signin")}
+              >
+                {mode === "signin" ? "Create an account" : "Sign in instead"}
+              </button>
+            </div>
           </div>
+
+          {/* Legal micro-copy */}
+          <p className="relative mt-5 text-center text-[11px] leading-relaxed text-muted-foreground">
+            By continuing you agree to our{" "}
+            <span className="underline underline-offset-2">Terms</span> and{" "}
+            <span className="underline underline-offset-2">Privacy Policy</span>.
+          </p>
         </div>
       </div>
     </div>
